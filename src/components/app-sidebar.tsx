@@ -23,6 +23,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 import { useHasActiveSubscription } from "@/features/subscriptions/hooks/use-subscription";
@@ -51,6 +52,7 @@ const menuItems = [
 ];
 
 export const AppSidebar = () => {
+  const { state } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
   const { data: session, isPending: sessionPending } = authClient.useSession();
@@ -62,11 +64,30 @@ export const AppSidebar = () => {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild className="gap-x-4 h-10 px-4">
-            <Link href="/" prefetch className="flex items-center gap-3 px-2">
-              <Image src="/logos/logo.png" alt="iSuite" width={36} height={36} className="object-contain" />
-              <span className="font-bold text-2xl tracking-tight">iSuite</span>
+        <SidebarMenuItem className="list-none">
+          <SidebarMenuButton asChild className="gap-x-4 h-12 px-2 transition-all duration-200">
+            <Link href="/" prefetch className="flex items-center gap-3">
+              {state === "expanded" ? (
+                <div className="relative w-full h-8 px-2">
+                  <Image
+                    src="/logos/full-logo.png"
+                    alt="iSuite"
+                    fill
+                    className="object-contain object-left"
+                    priority
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center justify-center w-full">
+                  <Image
+                    src="/logos/logo.png"
+                    alt="iSuite"
+                    width={28}
+                    height={28}
+                    className="object-contain"
+                  />
+                </div>
+              )}
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

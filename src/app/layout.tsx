@@ -20,6 +20,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "iSuite - AI Workflow Automation",
   description: "Automate your workflows with AI power",
+  icons: {
+    icon: "/logos/logo.png",
+  },
 };
 
 export default function RootLayout({
