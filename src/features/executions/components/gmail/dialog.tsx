@@ -55,7 +55,7 @@ const formSchema = z.object({
         "DELETE_MESSAGE",
         "ADD_LABEL",
         "REMOVE_LABEL"
-    ]).default("SEND_EMAIL"),
+    ]),
     to: z.string().optional(),
     subject: z.string().optional(),
     body: z.string().optional(),
