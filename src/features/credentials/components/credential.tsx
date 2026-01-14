@@ -1,0 +1,490 @@
+"use client";
+
+import { CredentialType } from "@/generated/prisma";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import {
+  useCreateCredential,
+  useUpdateCredential,
+  useSuspenseCredential,
+} from "../hooks/use-credentials";
+import { useUpgradeModal } from "@/hooks/use-upgrade-modal";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import z from "zod";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useEffect, useState, useCallback } from "react";
+import { exchangeGoogleToken } from "../actions/oauth";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  type: z.nativeEnum(CredentialType),
+  value: z.string().min(1, "Value is required"),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+const credentialTypeOptions = [
+  {
+    value: CredentialType.OPENAI,
+    label: "OpenAI",
+    logo: "/logos/openai.svg",
+  },
+  {
+    value: CredentialType.ANTHROPIC,
+    label: "Anthropic",
+    logo: "/logos/anthropic.svg",
+  },
+  {
+    value: CredentialType.GEMINI,
+    label: "Gemini",
+    logo: "/logos/gemini.svg",
+  },
+  {
+    value: CredentialType.GOOGLE_SHEETS,
+    label: "Google Sheets",
+    logo: "/logos/google-sheets.png",
+  },
+  {
+    value: CredentialType.POSTGRES,
+    label: "Postgres",
+    logo: "/logos/postgres.png",
+  },
+  {
+    value: CredentialType.MYSQL,
+    label: "MySQL",
+    logo: "/logos/mysql.png",
+  },
+  {
+    value: CredentialType.GMAIL,
+    label: "Gmail (OAuth)",
+    logo: "/logos/google.svg",
+  },
+];
+
+interface CredentialFormProps {
+  initialData?: {
+    id?: string;
+    name: string;
+    type: CredentialType;
+    value: string;
+  };
+};
+
+export const CredentialForm = ({
+  initialData,
+}: CredentialFormProps) => {
+  const router = useRouter();
+  const createCredential = useCreateCredential();
+  const updateCredential = useUpdateCredential();
+  const { handleError, modal } = useUpgradeModal();
+
+  const isEdit = !!initialData?.id;
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: initialData || {
+      name: "",
+      type: CredentialType.OPENAI,
+      value: "",
+    },
+  });
+
+  const watchType = form.watch("type");
+
+  // Gmail specific state
+  const [gmailConfig, setGmailConfig] = useState({
+    user: "",
+    clientId: "",
+    clientSecret: "",
+    refreshToken: "",
+  });
+
+  // OAuth Flow State
+  const [redirectUri, setRedirectUri] = useState("");
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setRedirectUri(`${window.location.origin}/oauth/callback`);
+    }
+  }, []);
+
+  // Load initial gmail config if applicable
+  useEffect(() => {
+    if (initialData?.type === CredentialType.GMAIL && initialData.value) {
+      try {
+        const parsed = JSON.parse(initialData.value);
+        setGmailConfig(parsed);
+      } catch (e) {
+        console.error("Failed to parse Gmail config", e);
+      }
+    }
+  }, [initialData]);
+
+  // Update value when gmail config changes
+  useEffect(() => {
+    if (watchType === CredentialType.GMAIL || watchType === CredentialType.GOOGLE_SHEETS) {
+      form.setValue("value", JSON.stringify(gmailConfig));
+    }
+  }, [gmailConfig, watchType, form]);
+
+  const handleOAuthLogin = useCallback(() => {
+    if (!gmailConfig.clientId || !gmailConfig.clientSecret) {
+      toast.error("Please enter Client ID and Client Secret first");
+      return;
+    }
+
+    setIsConnecting(true);
+
+    // Define clean up function locally to remove listener later
+    const receiveMessage = async (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data?.type === "OAUTH_RESPONSE") {
+        const { code, error } = event.data;
+
+        if (error) {
+          toast.error(`OAuth Error: ${error}`);
+          setIsConnecting(false);
+          window.removeEventListener("message", receiveMessage);
+          return;
+        }
+
+        if (code) {
+          try {
+            toast.info("Exchanging code for tokens...");
+            const result = await exchangeGoogleToken({
+              code,
+              clientId: gmailConfig.clientId,
+              clientSecret: gmailConfig.clientSecret,
+              redirectUri,
+            });
+
+            if (result.refresh_token) {
+              setGmailConfig(prev => ({
+                ...prev,
+                refreshToken: result.refresh_token,
+                user: result.email || prev.user,
+              }));
+              toast.success(`Successfully connected to ${watchType === CredentialType.GOOGLE_SHEETS ? 'Google Sheets' : 'Gmail'}!`);
+            } else {
+              toast.warning("Connected, but no refresh token returned. Revoke access and try again if this persists.");
+            }
+          } catch (err) {
+            toast.error(`Token Exchange Failed: ${err instanceof Error ? err.message : String(err)}`);
+          } finally {
+            setIsConnecting(false);
+            window.removeEventListener("message", receiveMessage);
+          }
+        }
+      }
+    };
+
+    window.addEventListener("message", receiveMessage);
+
+    // Determine Scope
+    const scope = watchType === CredentialType.GOOGLE_SHEETS
+      ? "https://www.googleapis.com/auth/spreadsheets email profile"
+      : "https://mail.google.com/ email profile";
+
+    // Construct Auth URL
+    const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+    authUrl.searchParams.append("client_id", gmailConfig.clientId);
+    authUrl.searchParams.append("redirect_uri", redirectUri);
+    authUrl.searchParams.append("response_type", "code");
+    authUrl.searchParams.append("scope", scope);
+    authUrl.searchParams.append("access_type", "offline");
+    authUrl.searchParams.append("prompt", "consent"); // Force consent to ensure refresh token
+
+    const width = 600;
+    const height = 700;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
+
+    window.open(
+      authUrl.toString(),
+      "GoogleAuth",
+      `width=${width},height=${height},top=${top},left=${left}`
+    );
+
+  }, [gmailConfig.clientId, gmailConfig.clientSecret, redirectUri, watchType]);
+
+
+  const onSubmit = async (values: FormValues) => {
+    if (isEdit && initialData?.id) {
+      await updateCredential.mutateAsync({
+        id: initialData.id,
+        ...values,
+      })
+    } else {
+      await createCredential.mutateAsync(values, {
+        onSuccess: (data) => {
+          router.push(`/credentials/${data.id}`);
+        },
+        onError: (error) => {
+          handleError(error);
+        }
+      })
+    }
+  }
+
+  return (
+    <>
+      {modal}
+      <Card className="shadow-none">
+        <CardHeader>
+          <CardTitle>
+            {isEdit ? "Edit Credential" : "Create Credential"}
+          </CardTitle>
+          <CardDescription>
+            {isEdit
+              ? "Update your API key or credential details"
+              : "Add a new API key or credential to your account"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="My Credential" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {credentialTypeOptions.map((option) => (
+                          <SelectItem
+                            key={option.value}
+                            value={option.value}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Image
+                                src={option.logo}
+                                alt={option.label}
+                                width={16}
+                                height={16}
+                              />
+                              {option.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {watchType === CredentialType.GMAIL || watchType === CredentialType.GOOGLE_SHEETS ? (
+                <div className="space-y-4 border p-4 rounded-md bg-muted/20">
+                  <div className="space-y-2">
+                    <FormLabel>OAuth Redirect URL</FormLabel>
+                    <div className="flex gap-2">
+                      <Input
+                        readOnly
+                        value={redirectUri}
+                        className="bg-muted text-muted-foreground"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(redirectUri);
+                          toast.success("Copied to clipboard");
+                        }}
+                      >
+                        Copy
+                      </Button>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Copy this URL and add it to "Authorized redirect URIs" in your Google Cloud Console.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <FormLabel>Client ID <span className="text-red-500">*</span></FormLabel>
+                    <Input
+                      value={gmailConfig.clientId}
+                      onChange={(e) => setGmailConfig(prev => ({ ...prev, clientId: e.target.value }))}
+                      placeholder="...apps.googleusercontent.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <FormLabel>Client Secret <span className="text-red-500">*</span></FormLabel>
+                    <Input
+                      type="password"
+                      value={gmailConfig.clientSecret}
+                      onChange={(e) => setGmailConfig(prev => ({ ...prev, clientSecret: e.target.value }))}
+                      placeholder="Client Secret"
+                    />
+                  </div>
+
+                  <div className="pt-2">
+                    {gmailConfig.refreshToken ? (
+                      <div className="p-3 border border-green-200 bg-green-50 rounded-md flex items-center gap-2 text-green-700">
+                        <div className="h-2 w-2 rounded-full bg-green-600 animate-pulse" />
+                        <span className="text-sm font-medium">Connected as {gmailConfig.user}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="ml-auto text-red-500 hover:text-red-600 hover:bg-red-50"
+                          onClick={() => setGmailConfig(prev => ({ ...prev, refreshToken: "", user: "" }))}
+                        >
+                          Disconnect
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full gap-2"
+                        onClick={handleOAuthLogin}
+                        disabled={isConnecting || !gmailConfig.clientId || !gmailConfig.clientSecret}
+                      >
+                        {isConnecting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Connecting...
+                          </>
+                        ) : (
+                          <>
+                            {watchType === CredentialType.GOOGLE_SHEETS ? (
+                              <Image src="/logos/google-sheets.png" width={16} height={16} alt="Sheets" />
+                            ) : (
+                              <Image src="/logos/google.svg" width={16} height={16} alt="Google" />
+                            )}
+                            {watchType === CredentialType.GOOGLE_SHEETS ? "Sign in with Google Sheets" : "Sign in with Google"}
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    {!gmailConfig.refreshToken && (
+                      <p className="text-[11px] text-center text-muted-foreground mt-2">
+                        Click to open popup and authorize access.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Hidden Refresh Token Field (stored in state, but debug view if needed) */}
+                  {gmailConfig.refreshToken && (
+                    <div className="space-y-2 opacity-50">
+                      <FormLabel className="text-xs">Refresh Token (Auto-filled)</FormLabel>
+                      <Input
+                        type="password"
+                        readOnly
+                        value={gmailConfig.refreshToken}
+                        className="text-xs h-8"
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <FormField
+                  control={form.control}
+                  name="value"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>API Key / Value</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder={
+                            watchType === CredentialType.POSTGRES || watchType === CredentialType.MYSQL ? "Connection String" :
+                              "sk-..."
+                          }
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              <div className="flex gap-4">
+                <Button
+                  type="submit"
+                  disabled={
+                    createCredential.isPending ||
+                    updateCredential.isPending
+                  }
+                >
+                  {isEdit ? "Update" : "Create"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  asChild
+                >
+                  <Link href="/credentials" prefetch>
+                    Cancel
+                  </Link>
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </>
+  )
+};
+
+export const CredentialView = ({
+  credentialId,
+}: { credentialId: string }) => {
+  const { data: credential } = useSuspenseCredential(credentialId);
+
+  return <CredentialForm initialData={credential} />
+};
