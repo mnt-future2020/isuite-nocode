@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# iSuite (No-Code Workflow Automation)
 
-## Getting Started
+iSuite is a powerful, modern, and visually stunning no-code workflow automation platform. Think of it as a premium, developer-friendly alternative to n8n and Zapier, built with the latest web technologies.
 
-First, run the development server:
+![iSuite Dashboard](/public/logos/logo.png)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Key Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 🎨 Premium UI/UX
+- **Dynamic Workflow Editor**: A high-performance canvas built with React Flow for dragging, dropping, and connecting nodes.
+- **Glassmorphic Design**: Modern aesthetics with vibrant colors and smooth micro-animations.
+- **Real-time Status**: Live "loading", "success", and "error" indicators on nodes during execution.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 🧩 Comprehensive Nodes
+- **Google Integrations**:
+  - **Gmail**: Send emails, create drafts, manage labels, and retrieve threads/messages.
+  - **Google Sheets**: Read, append, update, and clear spreadsheet data dynamically.
+- **AI Intelligence**:
+  - Native support for **Google Gemini**, **OpenAI GPT**, and **Anthropic Claude**.
+- **Logic & Utility**:
+  - **Conditions (If/Else)**, **Switch (Routers)**, **Loops**, and **Wait** nodes.
+  - **JSON Transformer** and **Code** nodes for advanced data manipulation.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### ⚙️ Technical Excellence
+- **Durable Execution**: Powered by **Inngest** for reliable, background workflow processing with automatic retries.
+- **Expression Engine**: A robust system for dynamic variables using `{{variable}}` syntax.
+- **Variable Picker**: Easily map outputs from previous nodes to inputs of current nodes.
+- **Type-Safe Backend**: built with Next.js 15, tRPC, and Prisma.
 
-## Learn More
+## 🛠 Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- **Framework**: [Next.js 15 (App Router)](https://nextjs.org/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Workflow Engine**: [Inngest](https://www.inngest.com/)
+- **Database Layer**: [Prisma ORM](https://www.prisma.io/) with PostgreSQL
+- **API Layer**: [tRPC](https://trpc.io/)
+- **Styling**: Vanilla CSS & Tailwind CSS
+- **Authentication**: [Better Auth](https://www.better-auth.com/)
+- **Canvas**: [React Flow (XYFlow)](https://reactflow.dev/)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🏁 Getting Started
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Prerequisites
+- Node.js 20+
+- PostgreSQL database
+- Inngest Dev Server
 
-## Deploy on Vercel
+### Installation
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/mnt-future2020/isuite-nocode.git
+    cd isuite-nocode
+    ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+
+3.  **Set up environment variables**:
+    Create a `.env` file based on the keys provided in the setup guide (DATABASE_URL, INNGEST_EVENT_KEY, etc.).
+
+4.  **Sync Database**:
+    ```bash
+    npx prisma db push
+    npx prisma generate
+    ```
+
+5.  **Run Development Server**:
+    ```bash
+    npm run dev
+    ```
+
+6.  **Run Inngest Dev Server**:
+    ```bash
+    npm run inngest:dev
+    ```
+
+## 🚢 Deployment
+
+iSuite is ready for production deployment. It supports **Docker** and **Next.js Standalone** mode.
+
+- **Docker**: A multi-stage `Dockerfile` is included for easy deployment to Digital Ocean Droplets or AWS.
+- **App Platform**: Connect your GitHub repository to Digital Ocean App Platform for automatic builds and scaling.
+
+## 📄 License
+
+This project is private and intended for internal use.
+
+---
+
+Built with ❤️ by the iSuite Team.
