@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function OAuthCallbackPage() {
+function CallbackContent() {
     const searchParams = useSearchParams();
 
     useEffect(() => {
@@ -27,5 +27,19 @@ export default function OAuthCallbackPage() {
                 <p className="text-muted-foreground">You can close this window if it doesn't close automatically.</p>
             </div>
         </div>
+    );
+}
+
+export default function OAuthCallbackPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center h-screen bg-background">
+                <div className="text-center">
+                    <h1 className="text-xl font-semibold mb-2">Loading...</h1>
+                </div>
+            </div>
+        }>
+            <CallbackContent />
+        </Suspense>
     );
 }
