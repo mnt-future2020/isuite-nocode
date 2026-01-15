@@ -150,6 +150,9 @@ enum NodeType {
   JSON_TRANSFORMER
   PDF_GENERATOR
   GMAIL
+  AI_AGENT
+  AI_MEMORY
+  AI_TOOL
 }
 
 model Node {

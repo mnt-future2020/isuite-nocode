@@ -27,6 +27,9 @@ import { postgresExecutor } from "../components/postgres/executor";
 import { mysqlExecutor } from "../components/mysql/executor";
 import { pdfGeneratorExecutor } from "../components/pdf-generator/executor";
 import { gmailExecutor } from "../components/gmail/executor";
+import { aiAgentExecutor } from "../components/ai-agent/executor";
+import { aiMemoryExecutor } from "../components/ai-memory/executor";
+import { aiToolExecutor } from "../components/ai-tool/executor";
 
 export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.INITIAL]: manualTriggerExecutor,
@@ -57,6 +60,9 @@ export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.MYSQL]: mysqlExecutor,
   [NodeType.PDF_GENERATOR]: pdfGeneratorExecutor,
   [NodeType.GMAIL]: gmailExecutor,
+  [NodeType.AI_AGENT]: aiAgentExecutor,
+  [NodeType.AI_MEMORY]: aiMemoryExecutor,
+  [NodeType.AI_TOOL]: aiToolExecutor,
 };
 
 export const getExecutor = (type: NodeType): NodeExecutor => {

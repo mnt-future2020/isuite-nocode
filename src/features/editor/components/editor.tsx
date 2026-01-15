@@ -42,6 +42,7 @@ import { WorkflowExecutionsList } from "./workflow-executions-list";
 import { toast } from 'sonner';
 import { useSearchParams } from 'next/navigation';
 import { TEMPLATES } from '@/config/templates';
+import DeletableEdge from './deletable-edge';
 
 export const EditorLoading = () => {
   return <LoadingView message="Loading editor..." />;
@@ -254,6 +255,9 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
         panOnScroll
         panOnDrag={false}
         selectionOnDrag
+        deleteKeyCode={['Backspace', 'Delete']}
+        edgeTypes={{ deletable: DeletableEdge }}
+        defaultEdgeOptions={{ type: 'deletable' }}
       >
         <Background />
         <Controls />

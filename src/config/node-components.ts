@@ -29,6 +29,9 @@ import { PostgresNode } from "@/features/executions/components/postgres/node";
 import { MySqlNode } from "@/features/executions/components/mysql/node";
 import { PDFGeneratorNode } from "@/features/executions/components/pdf-generator/node";
 import { GmailNode } from "@/features/executions/components/gmail/node";
+import { AiAgentNode } from "@/features/executions/components/ai-agent/node";
+import { AiMemoryNode } from "@/features/executions/components/ai-memory/node";
+import { AiToolNode } from "@/features/executions/components/ai-tool/node";
 
 export const nodeComponents = {
   [NodeType.INITIAL]: InitialNode,
@@ -59,6 +62,9 @@ export const nodeComponents = {
   [NodeType.MYSQL]: MySqlNode,
   [NodeType.PDF_GENERATOR]: PDFGeneratorNode,
   [NodeType.GMAIL]: GmailNode,
+  [NodeType.AI_AGENT]: AiAgentNode,
+  [NodeType.AI_MEMORY]: AiMemoryNode,
+  [NodeType.AI_TOOL]: AiToolNode,
 } as const satisfies NodeTypes;
 
 export type RegisteredNodeType = keyof typeof nodeComponents;
