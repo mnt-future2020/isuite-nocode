@@ -1,10 +1,14 @@
 "use server";
 
+import { getSubscriptionToken } from "@inngest/realtime";
+import { whatsappTriggerChannel } from "@/inngest/channels/whatsapp-trigger";
 import { inngest } from "@/inngest/client";
-import { WHATSAPP_TRIGGER_CHANNEL_NAME } from "@/inngest/channels/whatsapp-trigger";
 
-export const fetchWhatsAppTriggerRealtimeToken = async () => {
-    return inngest.getRealtimeAuthToken({
-        channel: WHATSAPP_TRIGGER_CHANNEL_NAME,
+export async function fetchWhatsAppTriggerRealtimeToken() {
+    const token = await getSubscriptionToken(inngest, {
+        channel: whatsappTriggerChannel(),
+        topics: ["status"],
     });
+
+    return token;
 };

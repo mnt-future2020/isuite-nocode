@@ -1,10 +1,14 @@
 "use server";
 
+import { getSubscriptionToken } from "@inngest/realtime";
+import { whatsappSendChannel } from "@/inngest/channels/whatsapp-send";
 import { inngest } from "@/inngest/client";
-import { WHATSAPP_SEND_CHANNEL_NAME } from "@/inngest/channels/whatsapp-send";
 
-export const fetchWhatsAppSendRealtimeToken = async () => {
-    return inngest.getRealtimeAuthToken({
-        channel: WHATSAPP_SEND_CHANNEL_NAME,
+export async function fetchWhatsAppSendRealtimeToken() {
+    const token = await getSubscriptionToken(inngest, {
+        channel: whatsappSendChannel(),
+        topics: ["status"],
     });
+
+    return token;
 };
