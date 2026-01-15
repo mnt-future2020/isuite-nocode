@@ -87,6 +87,11 @@ const credentialTypeOptions = [
     label: "Gmail (OAuth)",
     logo: "/logos/google.svg",
   },
+  {
+    value: CredentialType.GOOGLE_FORMS,
+    label: "Google Forms",
+    logo: "/logos/googleform.svg",
+  },
 ];
 
 interface CredentialFormProps {
@@ -151,7 +156,7 @@ export const CredentialForm = ({
 
   // Update value when gmail config changes
   useEffect(() => {
-    if (watchType === CredentialType.GMAIL || watchType === CredentialType.GOOGLE_SHEETS) {
+    if (watchType === CredentialType.GMAIL || watchType === CredentialType.GOOGLE_SHEETS || watchType === CredentialType.GOOGLE_FORMS) {
       form.setValue("value", JSON.stringify(gmailConfig));
     }
   }, [gmailConfig, watchType, form]);
@@ -194,7 +199,9 @@ export const CredentialForm = ({
                 refreshToken: result.refresh_token,
                 user: result.email || prev.user,
               }));
-              toast.success(`Successfully connected to ${watchType === CredentialType.GOOGLE_SHEETS ? 'Google Sheets' : 'Gmail'}!`);
+              const typeLabel = watchType === CredentialType.GOOGLE_SHEETS ? 'Google Sheets' :
+                watchType === CredentialType.GOOGLE_FORMS ? 'Google Forms' : 'Gmail';
+              toast.success(`Successfully connected to ${typeLabel}!`);
             } else {
               toast.warning("Connected, but no refresh token returned. Revoke access and try again if this persists.");
             }
@@ -211,9 +218,12 @@ export const CredentialForm = ({
     window.addEventListener("message", receiveMessage);
 
     // Determine Scope
-    const scope = watchType === CredentialType.GOOGLE_SHEETS
-      ? "https://www.googleapis.com/auth/spreadsheets email profile"
-      : "https://mail.google.com/ email profile";
+    let scope = "https://mail.google.com/ email profile";
+    if (watchType === CredentialType.GOOGLE_SHEETS) {
+      scope = "https://www.googleapis.com/auth/spreadsheets email profile";
+    } else if (watchType === CredentialType.GOOGLE_FORMS) {
+      scope = "https://www.googleapis.com/auth/forms.body.readonly https://www.googleapis.com/auth/forms.responses.readonly email profile";
+    }
 
     // Construct Auth URL
     const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
@@ -325,7 +335,7 @@ export const CredentialForm = ({
                 )}
               />
 
-              {watchType === CredentialType.GMAIL || watchType === CredentialType.GOOGLE_SHEETS ? (
+              {watchType === CredentialType.GMAIL || watchType === CredentialType.GOOGLE_SHEETS || watchType === CredentialType.GOOGLE_FORMS ? (
                 <div className="space-y-4 border p-4 rounded-md bg-muted/20">
                   <div className="space-y-2">
                     <FormLabel>OAuth Redirect URL</FormLabel>
@@ -402,10 +412,13 @@ export const CredentialForm = ({
                           <>
                             {watchType === CredentialType.GOOGLE_SHEETS ? (
                               <Image src="/logos/google-sheets.png" width={16} height={16} alt="Sheets" />
+                            ) : watchType === CredentialType.GOOGLE_FORMS ? (
+                              <Image src="/logos/googleform.svg" width={16} height={16} alt="Forms" />
                             ) : (
                               <Image src="/logos/google.svg" width={16} height={16} alt="Google" />
                             )}
-                            {watchType === CredentialType.GOOGLE_SHEETS ? "Sign in with Google Sheets" : "Sign in with Google"}
+                            {watchType === CredentialType.GOOGLE_SHEETS ? "Sign in with Google Sheets" :
+                              watchType === CredentialType.GOOGLE_FORMS ? "Sign in with Google Forms" : "Sign in with Google"}
                           </>
                         )}
                       </Button>

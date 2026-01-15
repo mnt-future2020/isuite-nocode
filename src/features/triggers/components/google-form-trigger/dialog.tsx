@@ -14,6 +14,7 @@ import { CopyIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { generateGoogleFormScript } from "./utils";
+import { useEffect, useState } from "react";
 
 interface Props {
   open: boolean;
@@ -28,9 +29,17 @@ export const GoogleFormTriggerDialog = ({
   const workflowId = params.workflowId as string;
 
   // Construct the webhook URL
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-  const webhookUrl = 
-    `${baseUrl}/api/webhooks/google-form?workflowId=${workflowId}`;
+  const [baseUrl, setBaseUrl] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setBaseUrl(window.location.origin);
+    }
+  }, []);
+
+  const webhookUrl = baseUrl
+    ? `${baseUrl}/api/webhooks/google-form?workflowId=${workflowId}`
+    : "";
 
   const copyToClipboard = async () => {
     try {
