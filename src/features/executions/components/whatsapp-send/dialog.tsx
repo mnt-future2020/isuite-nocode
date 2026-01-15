@@ -65,9 +65,9 @@ export const WhatsAppSendDialog = ({
     const params = useParams();
     const workflowId = params?.workflowId as string;
 
-    const { data: credentials, isLoading: isLoadingCreds } = useCredentialsByType({
-        type: CredentialType.WHATSAPP
-    });
+    const { data: credentials, isLoading: isLoadingCreds } = useCredentialsByType(
+        CredentialType.WHATSAPP
+    );
 
     const form = useForm<WhatsAppSendFormValues>({
         resolver: zodResolver(formSchema),

@@ -38,9 +38,9 @@ export const WhatsAppTriggerDialog = ({
     nodeId,
     defaultValues,
 }: Props) => {
-    const { data: credentials, isLoading } = useCredentialsByType({
-        type: CredentialType.WHATSAPP,
-    });
+    const { data: credentials, isLoading } = useCredentialsByType(
+        CredentialType.WHATSAPP,
+    );
     const { setNodes } = useReactFlow();
 
     const [credentialId, setCredentialId] = useState<string>(
