@@ -122,27 +122,49 @@ export const NodeEditorWorkspace = ({
 
                 {/* Middle Panel: Configuration (The Focus) */}
                 <ResizablePanel defaultSize={50} minSize={30} className="bg-white dark:bg-zinc-950">
-                    <div className="h-full flex flex-col">
+                    <Tabs defaultValue="parameters" className="h-full flex flex-col">
                         <div className="border-b shrink-0 h-10 flex items-center px-4 bg-muted/5">
-                            <Tabs defaultValue="parameters" className="w-full h-full">
-                                <TabsList className="bg-transparent h-10 p-0 gap-8">
-                                    <TabsTrigger value="parameters" className="relative h-10 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none px-0 text-xs font-bold uppercase tracking-wide transition-all">
-                                        Parameters
-                                    </TabsTrigger>
-                                    <TabsTrigger value="settings" className="relative h-10 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none px-0 text-xs font-bold uppercase tracking-wide transition-all">
-                                        Settings
-                                    </TabsTrigger>
-                                </TabsList>
-                            </Tabs>
+                            <TabsList className="bg-transparent h-10 p-0 gap-8">
+                                <TabsTrigger value="parameters" className="relative h-10 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none px-0 text-xs font-bold uppercase tracking-wide transition-all">
+                                    Parameters
+                                </TabsTrigger>
+                                <TabsTrigger value="settings" className="relative h-10 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none px-0 text-xs font-bold uppercase tracking-wide transition-all">
+                                    Settings
+                                </TabsTrigger>
+                            </TabsList>
                         </div>
                         <ScrollArea className="flex-1">
-                            <div className="p-10">
-                                <div className="space-y-8">
-                                    {children}
+                            <TabsContent value="parameters" className="mt-0 h-full">
+                                <div className="p-10">
+                                    <div className="space-y-8">
+                                        {children}
+                                    </div>
                                 </div>
-                            </div>
+                            </TabsContent>
+                            <TabsContent value="settings" className="mt-0 h-full">
+                                <div className="p-10 space-y-6">
+                                    <div className="space-y-2">
+                                        <h4 className="font-bold text-sm">Node Settings</h4>
+                                        <p className="text-sm text-muted-foreground">Configure general settings for this node.</p>
+                                    </div>
+
+                                    <div className="p-4 rounded-lg border bg-muted/10 space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-semibold uppercase text-muted-foreground">Node Name & Description</label>
+                                            <div className="text-sm font-medium">{title}</div>
+                                            <div className="text-xs text-muted-foreground">{description || "No description"}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 rounded-lg border bg-yellow-50/50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-900/30">
+                                        <p className="text-xs text-yellow-600 dark:text-yellow-400 font-medium">
+                                            Retry policies and Error handling settings coming soon.
+                                        </p>
+                                    </div>
+                                </div>
+                            </TabsContent>
                         </ScrollArea>
-                    </div>
+                    </Tabs>
                 </ResizablePanel>
 
                 <ResizableHandle className="w-1.5 bg-border/50 hover:bg-primary/30 transition-colors" />
