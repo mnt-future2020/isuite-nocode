@@ -13,9 +13,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useSuspenseWorkflow, useUpdateWorkflow, useUpdateWorkflowName } from "@/features/workflows/hooks/use-workflows";
+import { useSuspenseWorkflow, useUpdateWorkflow, useUpdateWorkflowName, useUpdateWorkflowStatus } from "@/features/workflows/hooks/use-workflows";
 import { useAtomValue } from "jotai";
 import { editorAtom } from "../store/atoms";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
   const editor = useAtomValue(editorAtom);
@@ -37,7 +39,7 @@ export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
   }
 
   return (
-    <div className="ml-auto">
+    <div className="ml-0">
       <Button size="sm" onClick={handleSave} disabled={saveWorkflow.isPending}>
         <SaveIcon className="size-4" />
         Save
@@ -134,13 +136,36 @@ export const EditorBreadcrumbs = ({ workflowId }: { workflowId: string }) => {
   )
 };
 
+export const EditorActivationToggle = ({ workflowId }: { workflowId: string }) => {
+  const { data: workflow } = useSuspenseWorkflow(workflowId);
+  const updateStatus = useUpdateWorkflowStatus();
+
+  return (
+    <div className="flex items-center gap-2 mr-4 border-r pr-4 h-6">
+      <Switch
+        id="workflow-active"
+        checked={workflow.isActive}
+        onCheckedChange={(checked) => updateStatus.mutate({ id: workflowId, isActive: checked })}
+        disabled={updateStatus.isPending}
+        className="data-[state=checked]:bg-green-600"
+      />
+      <Label htmlFor="workflow-active" className="text-xs font-semibold cursor-pointer text-muted-foreground hover:text-foreground transition-colors uppercase tracking-wider">
+        {workflow.isActive ? 'Active' : 'Inactive'}
+      </Label>
+    </div>
+  );
+};
+
 export const EditorHeader = ({ workflowId }: { workflowId: string }) => {
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 bg-background">
       <SidebarTrigger />
       <div className="flex flex-row items-center justify-between gap-x-4 w-full">
         <EditorBreadcrumbs workflowId={workflowId} />
-        <EditorSaveButton workflowId={workflowId} />
+        <div className="flex items-center gap-2 ml-auto">
+          <EditorActivationToggle workflowId={workflowId} />
+          <EditorSaveButton workflowId={workflowId} />
+        </div>
       </div>
     </header>
   );

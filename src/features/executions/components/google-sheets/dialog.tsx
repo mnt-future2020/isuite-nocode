@@ -100,7 +100,8 @@ export const GoogleSheetsDialog = ({
                 credentialId: defaultValues.credentialId || "",
             });
         }
-    }, [open, defaultValues, form]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open, form]);
 
     const handleRunTest = () => {
         runTest(form.getValues(), contextInput, inputData);

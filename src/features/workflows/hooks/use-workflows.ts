@@ -9,7 +9,7 @@ import { useWorkflowsParams } from "./use-workflows-params";
 export const useSuspenseWorkflows = () => {
   const trpc = useTRPC();
   const [params] = useWorkflowsParams();
-  
+
   return useSuspenseQuery(trpc.workflows.getMany.queryOptions(params));
 };
 
@@ -126,6 +126,31 @@ export const useExecuteWorkflow = () => {
       },
       onError: (error) => {
         toast.error(`Failed to execute workflow: ${error.message}`);
+      },
+    }),
+  );
+};
+
+/**
+ * Hook to update workflow status
+ */
+export const useUpdateWorkflowStatus = () => {
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
+
+  return useMutation(
+    trpc.workflows.updateStatus.mutationOptions({
+      onSuccess: (data) => {
+        toast.success(`Workflow "${data.name}" is now ${data.isActive ? 'Active' : 'Inactive'}`);
+        queryClient.invalidateQueries(
+          trpc.workflows.getMany.queryOptions({}),
+        );
+        queryClient.invalidateQueries(
+          trpc.workflows.getOne.queryOptions({ id: data.id }),
+        );
+      },
+      onError: (error) => {
+        toast.error(`Failed to update workflow status: ${error.message}`);
       },
     }),
   );

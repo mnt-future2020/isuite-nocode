@@ -353,14 +353,15 @@ export const cleanupExecutionLogs = inngest.createFunction(
   { id: "cleanup-execution-logs" },
   { cron: "0 0 * * *" }, // Run every day at midnight
   async ({ step }: { step: any }) => {
-    const thresholdDate = new Date();
-    thresholdDate.setDate(thresholdDate.getDate() - 7); // 7 days ago
+    // Cleanup 1: Delete completed/failed logs older than 3 days (reduced from 7)
+    const completedThreshold = new Date();
+    completedThreshold.setDate(completedThreshold.getDate() - 3);
 
-    const deletedCount = await step.run("delete-old-logs", async () => {
+    const deletedCompleted = await step.run("delete-completed-logs", async () => {
       const result = await prisma.execution.deleteMany({
         where: {
           startedAt: {
-            lt: thresholdDate,
+            lt: completedThreshold,
           },
           status: {
             in: [ExecutionStatus.SUCCESS, ExecutionStatus.FAILED],
@@ -370,7 +371,24 @@ export const cleanupExecutionLogs = inngest.createFunction(
       return result.count;
     });
 
-    return { deletedCount };
+    // Cleanup 2: Delete "Zombie" executions that are stuck in RUNNING for > 30 days
+    // This handles cases where the server crashed or Inngest lost track
+    const zombieThreshold = new Date();
+    zombieThreshold.setDate(zombieThreshold.getDate() - 30);
+
+    const deletedZombies = await step.run("delete-zombie-logs", async () => {
+      const result = await prisma.execution.deleteMany({
+        where: {
+          startedAt: {
+            lt: zombieThreshold,
+          },
+          status: ExecutionStatus.RUNNING,
+        },
+      });
+      return result.count;
+    });
+
+    return { deletedCompleted, deletedZombies };
   },
 );
 
