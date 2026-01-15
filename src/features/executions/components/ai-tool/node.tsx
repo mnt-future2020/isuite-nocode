@@ -22,10 +22,12 @@ export const AiToolNode = ({ id, data, selected }: NodeProps) => {
 
     return (
         <>
-            <div className={cn(
-                "relative min-w-[240px] rounded-xl border-2 bg-card p-4 shadow-sm transition-all group",
-                selected ? "border-amber-500 shadow-md ring-2 ring-amber-500/20" : "border-border hover:border-amber-500/50"
-            )}>
+            <div
+                onDoubleClick={() => setOpen(true)}
+                className={cn(
+                    "relative min-w-[240px] rounded-xl border-2 bg-card p-4 shadow-sm transition-all group",
+                    selected ? "border-amber-500 shadow-md ring-2 ring-amber-500/20" : "border-border hover:border-amber-500/50"
+                )}>
                 {/* Node Header */}
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30">

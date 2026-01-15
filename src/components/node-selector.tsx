@@ -92,6 +92,12 @@ const triggerNodes: NodeTypeOption[] = [
     description: "Runs on Stripe events",
     icon: "/logos/stripe.svg",
   },
+  {
+    type: NodeType.WHATSAPP_TRIGGER,
+    label: "WhatsApp Trigger",
+    description: "Runs on incoming WhatsApp message",
+    icon: "/logos/whatsapp.png",
+  },
 ];
 
 const aiNodes: NodeTypeOption[] = [
@@ -220,6 +226,12 @@ const integrationNodes: NodeTypeOption[] = [
     label: "Discord",
     description: "Send messages to Discord",
     icon: "/logos/discord.svg",
+  },
+  {
+    type: NodeType.WHATSAPP_SEND,
+    label: "WhatsApp Send",
+    description: "Send a message via WhatsApp",
+    icon: "/logos/whatsapp.png",
   },
 ];
 

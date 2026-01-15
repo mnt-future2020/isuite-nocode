@@ -31,7 +31,7 @@ export const WhatsappTriggerNode = memo((props: NodeProps) => {
             />
             <BaseTriggerNode
                 {...props}
-                icon={MessageCircle}
+                icon="/logos/whatsapp.png"
                 name="WhatsApp"
                 description="On incoming message"
                 status={nodeStatus}

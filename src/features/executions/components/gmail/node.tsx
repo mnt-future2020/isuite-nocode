@@ -66,7 +66,7 @@ export const GmailNode = (props: NodeProps) => {
             <BaseExecutionNode
                 {...props}
                 category="INTEGRATION"
-                icon={MailIcon}
+                icon="/logos/gmail.svg"
                 name="Gmail"
                 description={description}
                 status={nodeStatus}

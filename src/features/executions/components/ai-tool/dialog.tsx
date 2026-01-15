@@ -1,13 +1,12 @@
-
 "use client";
 
 import { useNodeData } from "@/hooks/use-node-data";
 import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-} from "@/components/ui/sheet";
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,13 +42,13 @@ export function AiToolDialog({ nodeId, open, onOpenChange }: AiToolDialogProps) 
     const [data, setData] = useNodeData<AiToolData>(nodeId);
 
     return (
-        <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="w-[400px] sm:w-[540px]">
-                <SheetHeader>
-                    <SheetTitle>Configure AI Tool</SheetTitle>
-                </SheetHeader>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-xl">
+                <DialogHeader>
+                    <DialogTitle>Configure AI Tool</DialogTitle>
+                </DialogHeader>
 
-                <div className="flex flex-col gap-6 py-6">
+                <div className="flex flex-col gap-6 py-2">
                     {/* Tool Type Selection */}
                     <div className="flex flex-col gap-2">
                         <Label>Tool Type</Label>
@@ -129,7 +128,7 @@ export function AiToolDialog({ nodeId, open, onOpenChange }: AiToolDialogProps) 
                     )}
 
                 </div>
-            </SheetContent>
-        </Sheet>
+            </DialogContent>
+        </Dialog>
     );
 }
