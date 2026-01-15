@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useNodeData } from "@/features/editor/hooks/use-node-data";
+import { useNodeData } from "@/hooks/use-node-data";
 import {
     Sheet,
     SheetContent,

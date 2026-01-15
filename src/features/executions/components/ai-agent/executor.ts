@@ -5,7 +5,7 @@ import { NodeType } from "@/generated/prisma";
 import { ChatOpenAI } from "@langchain/openai";
 import { BufferMemory } from "langchain/memory";
 import { DynamicTool, Tool } from "@langchain/core/tools";
-import { Calculator } from "langchain/tools/calculator";
+import { Calculator } from "@langchain/community/tools/calculator";
 import { initializeAgentExecutorWithOptions } from "langchain/agents";
 
 export const aiAgentExecutor = async (params: NodeExecutorParams) => {
