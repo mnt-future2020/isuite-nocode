@@ -65,15 +65,15 @@ export const AppSidebar = () => {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenuItem className="list-none">
-          <SidebarMenuButton asChild className="gap-x-4 h-12 px-2 transition-all duration-200">
-            <Link href="/" prefetch className="flex items-center gap-3">
+          <SidebarMenuButton asChild className="gap-x-4 h-16 px-2 transition-all duration-200">
+            <Link href="/" prefetch className="flex items-center gap-3 w-full justify-center">
               {state === "expanded" ? (
-                <div className="relative w-full h-8 px-2">
+                <div className="relative w-full h-14">
                   <Image
                     src="/logos/full-logo.png"
                     alt="iSuite"
                     fill
-                    className="object-contain object-left"
+                    className="object-contain object-center scale-110"
                     priority
                   />
                 </div>
