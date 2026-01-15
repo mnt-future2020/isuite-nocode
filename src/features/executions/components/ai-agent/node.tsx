@@ -158,10 +158,10 @@ export const AiAgentNode = memo((props: NodeProps<AiAgentNodeType>) => {
                     </div>
 
                     {/* Status Indicator (Mini) */}
-                    {nodeStatus?.status === 'loading' && (
+                    {nodeStatus === 'loading' && (
                         <div className="absolute top-2 right-2 animate-spin w-2 h-2 rounded-full border-2 border-blue-500 border-t-transparent" />
                     )}
-                    {nodeStatus?.status === 'error' && (
+                    {nodeStatus === 'error' && (
                         <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500" />
                     )}
 

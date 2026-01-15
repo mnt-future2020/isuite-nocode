@@ -26,6 +26,13 @@ interface AiToolDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
+interface AiToolData {
+    toolType?: string;
+    name?: string;
+    description?: string;
+    func?: string;
+}
+
 const TOOL_TYPES = [
     { value: "duckduckgo_search", label: "DuckDuckGo Search" },
     { value: "calculator", label: "Calculator" },
@@ -33,7 +40,7 @@ const TOOL_TYPES = [
 ];
 
 export function AiToolDialog({ nodeId, open, onOpenChange }: AiToolDialogProps) {
-    const [data, setData] = useNodeData(nodeId);
+    const [data, setData] = useNodeData<AiToolData>(nodeId);
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>

@@ -3,10 +3,10 @@ import { NodeExecutorParams } from "../../types";
 import prisma from "@/lib/db";
 import { NodeType } from "@/generated/prisma";
 import { ChatOpenAI } from "@langchain/openai";
-import { BufferMemory } from "langchain/memory";
+import { BufferMemory } from "@langchain/classic/memory";
 import { DynamicTool, Tool } from "@langchain/core/tools";
 import { Calculator } from "@langchain/community/tools/calculator";
-import { initializeAgentExecutorWithOptions } from "langchain/agents";
+import { initializeAgentExecutorWithOptions } from "@langchain/classic/agents";
 
 export const aiAgentExecutor = async (params: NodeExecutorParams) => {
     const { data, nodeId, context } = params;
