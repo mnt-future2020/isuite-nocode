@@ -122,6 +122,8 @@ const credentialLogos: Record<CredentialType, string> = {
   [CredentialType.GOOGLE_SHEETS]: "/logos/google-sheets.png",
   [CredentialType.POSTGRES]: "/logos/postgres.svg",
   [CredentialType.MYSQL]: "/logos/mysql.svg",
+  [CredentialType.GOOGLE_FORMS]: "/logos/googleform.svg",
+  [CredentialType.WHATSAPP]: "/logos/whatsapp.png",
 };
 
 export const CredentialItem = ({

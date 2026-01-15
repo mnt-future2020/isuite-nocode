@@ -30,6 +30,8 @@ import { gmailExecutor } from "../components/gmail/executor";
 import { aiAgentExecutor } from "../components/ai-agent/executor";
 import { aiMemoryExecutor } from "../components/ai-memory/executor";
 import { aiToolExecutor } from "../components/ai-tool/executor";
+import { whatsappTriggerExecutor } from "@/features/triggers/components/whatsapp-trigger/executor";
+import { whatsappSendExecutor } from "@/features/executions/components/whatsapp-send/executor";
 
 export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.INITIAL]: manualTriggerExecutor,
@@ -63,6 +65,8 @@ export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.AI_AGENT]: aiAgentExecutor,
   [NodeType.AI_MEMORY]: aiMemoryExecutor,
   [NodeType.AI_TOOL]: aiToolExecutor,
+  [NodeType.WHATSAPP_TRIGGER]: whatsappTriggerExecutor,
+  [NodeType.WHATSAPP_SEND]: whatsappSendExecutor,
 };
 
 export const getExecutor = (type: NodeType): NodeExecutor => {

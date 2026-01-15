@@ -92,6 +92,11 @@ const credentialTypeOptions = [
     label: "Google Forms",
     logo: "/logos/googleform.svg",
   },
+  {
+    value: CredentialType.WHATSAPP,
+    label: "WhatsApp Cloud API",
+    logo: "/logos/whatsapp.png",
+  },
 ];
 
 interface CredentialFormProps {
@@ -132,6 +137,13 @@ export const CredentialForm = ({
     refreshToken: "",
   });
 
+  // WhatsApp specific state
+  const [whatsappConfig, setWhatsappConfig] = useState({
+    accessToken: "",
+    phoneNumberId: "",
+    verifyToken: "",
+  });
+
   // OAuth Flow State
   const [redirectUri, setRedirectUri] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
@@ -142,24 +154,30 @@ export const CredentialForm = ({
     }
   }, []);
 
-  // Load initial gmail config if applicable
+  // Load initial gmail/whatsapp config if applicable
   useEffect(() => {
-    if (initialData?.type === CredentialType.GMAIL && initialData.value) {
+    if (initialData?.value) {
       try {
         const parsed = JSON.parse(initialData.value);
-        setGmailConfig(parsed);
+        if (initialData.type === CredentialType.GMAIL) {
+          setGmailConfig(parsed);
+        } else if (initialData.type === CredentialType.WHATSAPP) {
+          setWhatsappConfig(parsed);
+        }
       } catch (e) {
-        console.error("Failed to parse Gmail config", e);
+        console.error("Failed to parse config", e);
       }
     }
   }, [initialData]);
 
-  // Update value when gmail config changes
+  // Update value when config changes
   useEffect(() => {
     if (watchType === CredentialType.GMAIL || watchType === CredentialType.GOOGLE_SHEETS || watchType === CredentialType.GOOGLE_FORMS) {
       form.setValue("value", JSON.stringify(gmailConfig));
+    } else if (watchType === CredentialType.WHATSAPP) {
+      form.setValue("value", JSON.stringify(whatsappConfig));
     }
-  }, [gmailConfig, watchType, form]);
+  }, [gmailConfig, whatsappConfig, watchType, form]);
 
   const handleOAuthLogin = useCallback(() => {
     if (!gmailConfig.clientId || !gmailConfig.clientSecret) {
@@ -442,6 +460,36 @@ export const CredentialForm = ({
                       />
                     </div>
                   )}
+                </div>
+              ) : watchType === CredentialType.WHATSAPP ? (
+                <div className="space-y-4 border p-4 rounded-md bg-muted/20">
+                  <div className="space-y-2">
+                    <FormLabel>Access Token (System User) <span className="text-red-500">*</span></FormLabel>
+                    <Input
+                      type="password"
+                      placeholder="EA..."
+                      value={whatsappConfig.accessToken}
+                      onChange={(e) => setWhatsappConfig(prev => ({ ...prev, accessToken: e.target.value }))}
+                    />
+                    <p className="text-[11px] text-muted-foreground">Permanent access token from Meta Business Suite.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <FormLabel>Phone Number ID <span className="text-red-500">*</span></FormLabel>
+                    <Input
+                      placeholder="1234567890"
+                      value={whatsappConfig.phoneNumberId}
+                      onChange={(e) => setWhatsappConfig(prev => ({ ...prev, phoneNumberId: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <FormLabel>Verify Token <span className="text-red-500">*</span></FormLabel>
+                    <Input
+                      placeholder="my-secret-token"
+                      value={whatsappConfig.verifyToken}
+                      onChange={(e) => setWhatsappConfig(prev => ({ ...prev, verifyToken: e.target.value }))}
+                    />
+                    <p className="text-[11px] text-muted-foreground">Create a secure string. You will use this when setting up the Webhook in Meta.</p>
+                  </div>
                 </div>
               ) : (
                 <FormField

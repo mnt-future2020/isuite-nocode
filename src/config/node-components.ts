@@ -32,6 +32,8 @@ import { GmailNode } from "@/features/executions/components/gmail/node";
 import { AiAgentNode } from "@/features/executions/components/ai-agent/node";
 import { AiMemoryNode } from "@/features/executions/components/ai-memory/node";
 import { AiToolNode } from "@/features/executions/components/ai-tool/node";
+import { WhatsappTriggerNode } from "@/features/triggers/components/whatsapp-trigger/node";
+import { WhatsAppSendNode } from "@/features/executions/components/whatsapp-send/node";
 
 export const nodeComponents = {
   [NodeType.INITIAL]: InitialNode,
@@ -65,6 +67,8 @@ export const nodeComponents = {
   [NodeType.AI_AGENT]: AiAgentNode,
   [NodeType.AI_MEMORY]: AiMemoryNode,
   [NodeType.AI_TOOL]: AiToolNode,
+  [NodeType.WHATSAPP_TRIGGER]: WhatsappTriggerNode,
+  [NodeType.WHATSAPP_SEND]: WhatsAppSendNode,
 } as const satisfies NodeTypes;
 
 export type RegisteredNodeType = keyof typeof nodeComponents;
