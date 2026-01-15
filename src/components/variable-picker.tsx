@@ -202,7 +202,12 @@ export const VariablePicker = ({ onSelect, currentId }: VariablePickerProps) => 
                                                 return (
                                                     <button
                                                         key={output.key}
-                                                        className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-primary/5 rounded-md group transition-all text-left border border-transparent hover:border-primary/10"
+                                                        className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-primary/5 rounded-md group transition-all text-left border border-transparent hover:border-primary/10 cursor-grab active:cursor-grabbing"
+                                                        draggable="true"
+                                                        onDragStart={(e) => {
+                                                            e.dataTransfer.setData("text/plain", displayStr);
+                                                            e.dataTransfer.effectAllowed = "copy";
+                                                        }}
                                                         onClick={() => {
                                                             onSelect(displayStr);
                                                             setOpen(false);
@@ -229,7 +234,12 @@ export const VariablePicker = ({ onSelect, currentId }: VariablePickerProps) => 
                                 {filteredSystem.map((sys) => (
                                     <button
                                         key={sys.key}
-                                        className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-primary/5 rounded-md group transition-all text-left border border-transparent hover:border-primary/10"
+                                        className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-primary/5 rounded-md group transition-all text-left border border-transparent hover:border-primary/10 cursor-grab active:cursor-grabbing"
+                                        draggable="true"
+                                        onDragStart={(e) => {
+                                            e.dataTransfer.setData("text/plain", `{{ ${sys.key} }}`);
+                                            e.dataTransfer.effectAllowed = "copy";
+                                        }}
                                         onClick={() => {
                                             onSelect(`{{ ${sys.key} }}`);
                                             setOpen(false);
