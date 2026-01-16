@@ -31,19 +31,50 @@ export const codeExecutor: NodeExecutor = async ({ data, context, step, nodeId, 
 
     try {
         const result = await step.run(`execute-code-${nodeId}`, async () => {
+            const vm = require('node:vm');
+
+            // Create a secure context
+            // We expose specific safe globals, avoiding process/require/env access
+            const sandbox = {
+                input: context,
+                console: {
+                    log: (...args: any[]) => console.log(`[Code Node ${nodeId}]`, ...args),
+                    error: (...args: any[]) => console.error(`[Code Node ${nodeId}]`, ...args),
+                    warn: (...args: any[]) => console.warn(`[Code Node ${nodeId}]`, ...args),
+                },
+                // Allow basic utility functions
+                setTimeout,
+                clearTimeout,
+                setInterval,
+                clearInterval,
+                URL,
+                URLSearchParams,
+                Buffer,
+                fetch: global.fetch, // Allow fetch if you want them to make HTTP requests
+            };
+
+            const contextObj = vm.createContext(sandbox);
+
+            // Wrap user code in an async function immediately invoked
+            // We use 'return' to get the value out
+            const wrappedCode = `
+                (async () => {
+                    const $input = input;
+                    ${code}
+                })()
+            `;
+
             try {
-                const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
-                const functionBody = `
-            const $input = ${JSON.stringify(context)};
-            ${code}
-          `;
+                // Run in new context with timeout to prevent infinite loops
+                const script = new vm.Script(wrappedCode);
+                const resultPromise = script.runInContext(contextObj, {
+                    timeout: 5000, // 5s timeout
+                    displayErrors: true
+                });
 
-                const userFunction = new AsyncFunction(functionBody);
-                const output = await userFunction();
-
-                return output ?? { success: true };
-            } catch (error: any) {
-                throw new Error(`Code execution error: ${error.message}`);
+                return await resultPromise ?? { success: true };
+            } catch (err: any) {
+                throw new Error(`Execution failed: ${err.message}`);
             }
         });
 

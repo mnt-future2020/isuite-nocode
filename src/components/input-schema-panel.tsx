@@ -14,6 +14,7 @@ interface NodeInputData {
     variableName: string;
     nodeType: string;
     output: any;
+    isMock?: boolean;
 }
 
 interface InputDataPanelProps {
@@ -27,6 +28,7 @@ const NodeDataGroup = ({
 }) => {
     const [isOpen, setIsOpen] = useState(true);
     const [copied, setCopied] = useState(false);
+    const isMock = nodeData.isMock;
 
     const handleCopyVariable = () => {
         navigator.clipboard.writeText(`{{ ${nodeData.variableName} }}`);
@@ -38,7 +40,7 @@ const NodeDataGroup = ({
         <Collapsible open={isOpen} onOpenChange={setIsOpen} className="mb-3">
             <CollapsibleTrigger className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-muted/50 rounded-md transition-colors">
                 {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-                <div className="h-2 w-2 rounded-full bg-green-500" />
+                <div className={cn("h-2 w-2 rounded-full", isMock ? "bg-amber-400" : "bg-green-500")} />
                 <span className="text-[11px] font-bold uppercase tracking-wide flex-1 text-left truncate">
                     {nodeData.nodeName}
                 </span>
@@ -46,7 +48,12 @@ const NodeDataGroup = ({
                     {nodeData.variableName}
                 </code>
             </CollapsibleTrigger>
-            <CollapsibleContent className="ml-4 mt-1 border-l-2 border-green-500/20 pl-2">
+            <CollapsibleContent className={cn("ml-4 mt-1 border-l-2 pl-2", isMock ? "border-amber-400/20" : "border-green-500/20")}>
+                {isMock && (
+                    <div className="px-2 py-1 mb-2 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-100 dark:border-amber-900/30 text-[10px] text-amber-700 dark:text-amber-400">
+                        Showing schema (not real data)
+                    </div>
+                )}
                 <div className="mb-2 flex items-center gap-2">
                     <button
                         onClick={handleCopyVariable}
@@ -57,14 +64,14 @@ const NodeDataGroup = ({
                     </button>
                 </div>
                 <div className="p-2 bg-muted/30 rounded-md border border-dashed">
-                    <JsonTreeView data={nodeData.output} label="Output" path={nodeData.variableName} defaultExpanded />
+                    <JsonTreeView data={nodeData.output} label={isMock ? "Schema" : "Output"} path={nodeData.variableName} defaultExpanded />
                 </div>
             </CollapsibleContent>
         </Collapsible>
     );
 };
 
-export const InputDataPanel = ({ nodeInputs }: InputDataPanelProps) => {
+export const InputDataPanelComponent = ({ nodeInputs }: InputDataPanelProps) => {
     if (nodeInputs.length === 0) {
         return (
             <div className="py-16 flex flex-col items-center justify-center text-center opacity-40 select-none">
@@ -93,6 +100,9 @@ export const InputDataPanel = ({ nodeInputs }: InputDataPanelProps) => {
         </div>
     );
 };
+
+// Re-export the old component for backward compatibility
+export const InputDataPanel = React.memo(InputDataPanelComponent);
 
 // Re-export the old component for backward compatibility
 export { InputDataPanel as InputSchemaPanel };

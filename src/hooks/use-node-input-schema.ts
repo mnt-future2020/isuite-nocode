@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useReactFlow } from "@xyflow/react";
+import { generateMockData } from "@/features/nodes/types";
 
 export interface NodeOutputData {
     nodeId: string;
@@ -9,6 +10,7 @@ export interface NodeOutputData {
     variableName: string;
     nodeType: string;
     output: any; // Actual execution output data
+    isMock?: boolean;
 }
 
 export const useNodeInputData = (currentNodeId?: string): NodeOutputData[] => {
@@ -34,27 +36,41 @@ export const useNodeInputData = (currentNodeId?: string): NodeOutputData[] => {
 
         findUpstream(currentNodeId);
 
-        // Build data for each upstream node that has execution output
+        // Build data for each upstream node
         return nodes
             .filter(node => upstreamNodeIds.has(node.id))
             .map(node => {
                 // Get the actual execution output from the node's data
                 const execution = node.data?.execution as { output?: any } | undefined;
-                const output = execution?.output;
+                let output = execution?.output;
+                let isMock = false;
+
+                // If no execution data, generate mock data from schema
+                if (!output) {
+                    output = generateMockData(node.type as string);
+                    isMock = true;
+                }
 
                 const variableName = String(node.data.variableName || node.data.name || node.type)
                     .toLowerCase()
                     .replace(/\s+/g, '_')
                     .replace(/[^a-z0-9_]/g, '');
 
+                // Some nodes output wrapped data { variable: data } and some output data directly
+                // We try to access the wrapped variable first
+                const finalOutput = (output && output[variableName]) ? output[variableName] : output;
+
                 return {
                     nodeId: node.id,
                     nodeName: String(node.data.name || node.type),
                     variableName,
                     nodeType: node.type as string,
-                    output: output ? output[variableName] : null, // Unwrap the variableName key
+                    output: finalOutput,
+                    isMock
                 };
             })
+            // Keep entries if they have output (real or mock)
             .filter(data => data.output !== null && data.output !== undefined);
+
     }, [getNodes, getEdges, currentNodeId]);
 };

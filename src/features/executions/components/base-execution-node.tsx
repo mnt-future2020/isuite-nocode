@@ -77,8 +77,6 @@ export const BaseExecutionNode = memo(
 
     return (
       <WorkflowNode
-        name={name}
-        description={description}
         onDelete={handleDelete}
         onSettings={onSettings}
       >
@@ -105,40 +103,47 @@ export const BaseExecutionNode = memo(
           status={status}
           variant="border"
         >
-          <BaseNode
-            status={status}
-            onDoubleClick={onDoubleClick}
-            className={cn("min-w-[50px] transition-all duration-200", className)}
-            style={style}
-          >
-            <BaseNodeContent className="flex flex-col items-center justify-center p-2">
-              <div className={`p-2 rounded-xl border-2 mb-1 shadow-sm transition-colors duration-200 ${categoryStyles[category]}`}>
-                {typeof Icon === "string" ? (
-                  <Image src={Icon} alt={name} width={20} height={20} className="rounded-sm" />
-                ) : (
-                  <Icon className="size-5" />
-                )}
-              </div>
-              {children}
+          <div className="relative flex flex-col items-center">
+            <BaseNode
+              status={status}
+              onDoubleClick={onDoubleClick}
+              className={cn("min-w-[40px] w-[40px] h-[40px] flex items-center justify-center transition-all duration-200 rounded-xl", className)}
+              style={style}
+            >
+              <BaseNodeContent className="flex items-center justify-center w-full h-full p-0">
+                <div className={`w-full h-full p-1.5 rounded-xl border shadow-sm flex items-center justify-center transition-colors duration-200 ${categoryStyles[category]}`}>
+                  {typeof Icon === "string" ? (
+                    <Image src={Icon} alt={name} width={22} height={22} className="rounded-sm" />
+                  ) : (
+                    <Icon className="size-5" />
+                  )}
+                </div>
+                {children}
 
-              {!props.disableDefaultHandles && (
-                <>
-                  <BaseHandle
-                    id="target-1"
-                    type="target"
-                    position={Position.Left}
-                    className="!bg-muted-foreground"
-                  />
-                  <BaseHandle
-                    id="source-1"
-                    type="source"
-                    position={Position.Right}
-                    className="!bg-muted-foreground"
-                  />
-                </>
-              )}
-            </BaseNodeContent>
-          </BaseNode>
+                {!props.disableDefaultHandles && (
+                  <>
+                    <BaseHandle
+                      id="target-1"
+                      type="target"
+                      position={Position.Left}
+                      className="!bg-muted-foreground w-2.5 h-2.5 border-2 border-background -left-1.5"
+                    />
+                    <BaseHandle
+                      id="source-1"
+                      type="source"
+                      position={Position.Right}
+                      className="!bg-muted-foreground w-2.5 h-2.5 border-2 border-background -right-1.5"
+                    />
+                  </>
+                )}
+              </BaseNodeContent>
+            </BaseNode>
+            <div className="absolute top-full mt-1.5 text-center w-[120px] pointer-events-none">
+              <div className="text-[9px] font-medium leading-tight truncate text-foreground/80 px-1.5 py-0.5 rounded-md bg-background/80 backdrop-blur-sm shadow-sm border border-border/50 inline-block max-w-full">
+                {name}
+              </div>
+            </div>
+          </div>
         </NodeStatusIndicator>
       </WorkflowNode>
     );

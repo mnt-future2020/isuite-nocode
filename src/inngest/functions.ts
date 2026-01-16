@@ -15,6 +15,43 @@ import { discordChannel } from "./channels/discord";
 import { slackChannel } from "./channels/slack";
 import { resolveExpressions } from "@/lib/expression-engine";
 
+const MAX_LOG_SIZE = 50 * 1024; // 50KB limit per step input/output
+
+const truncatePayload = (data: any): any => {
+  if (!data) return data;
+
+  try {
+    const str = JSON.stringify(data);
+    if (str.length <= MAX_LOG_SIZE) return data;
+
+    // If it's an object, try to preserve structure but truncate big strings
+    if (typeof data === 'object' && data !== null) {
+      if (Array.isArray(data)) {
+        return `[Array(${data.length}) - Truncated due to size]`;
+      }
+
+      const truncated: Record<string, any> = {};
+      let size = 0;
+
+      for (const [key, value] of Object.entries(data)) {
+        const valStr = JSON.stringify(value);
+        if (size + valStr.length > MAX_LOG_SIZE) {
+          truncated[key] = "...(truncated)";
+          truncated["_removed_fields"] = "...";
+          break;
+        }
+        truncated[key] = value;
+        size += valStr.length;
+      }
+      return truncated;
+    }
+
+    return `[Data size ${(str.length / 1024).toFixed(2)}KB - Truncated]`;
+  } catch (e) {
+    return "[Unable to serialize data]";
+  }
+};
+
 export const executeWorkflow = inngest.createFunction(
   {
     id: "execute-workflow",
@@ -144,14 +181,14 @@ export const executeWorkflow = inngest.createFunction(
                   executionId,
                   nodeId: node.id,
                   status: ExecutionStatus.SUCCESS,
-                  input: resolvedData as any,
-                  output: result as any,
+                  input: truncatePayload(resolvedData) as any,
+                  output: truncatePayload(result) as any,
                   completedAt: new Date(),
                 },
                 update: {
                   status: ExecutionStatus.SUCCESS,
-                  input: resolvedData as any,
-                  output: result as any,
+                  input: truncatePayload(resolvedData) as any,
+                  output: truncatePayload(result) as any,
                   completedAt: new Date(),
                 },
               });
@@ -195,13 +232,13 @@ export const executeWorkflow = inngest.createFunction(
                   executionId,
                   nodeId: node.id,
                   status: ExecutionStatus.FAILED,
-                  input: resolvedData as any,
+                  input: truncatePayload(resolvedData) as any,
                   error: error instanceof Error ? error.message : String(error),
                   completedAt: new Date(),
                 },
                 update: {
                   status: ExecutionStatus.FAILED,
-                  input: resolvedData as any,
+                  input: truncatePayload(resolvedData) as any,
                   error: error instanceof Error ? error.message : String(error),
                   completedAt: new Date(),
                 },
@@ -337,7 +374,7 @@ export const executeWorkflow = inngest.createFunction(
         data: {
           status: ExecutionStatus.SUCCESS,
           completedAt: new Date(),
-          output: context as any,
+          output: truncatePayload(context) as any,
         },
       });
     });
@@ -353,9 +390,9 @@ export const cleanupExecutionLogs = inngest.createFunction(
   { id: "cleanup-execution-logs" },
   { cron: "0 0 * * *" }, // Run every day at midnight
   async ({ step }: { step: any }) => {
-    // Cleanup 1: Delete completed/failed logs older than 3 days (reduced from 7)
+    // Cleanup 1: Delete completed/failed logs older than 1 day (reduced from 3)
     const completedThreshold = new Date();
-    completedThreshold.setDate(completedThreshold.getDate() - 3);
+    completedThreshold.setDate(completedThreshold.getDate() - 1);
 
     const deletedCompleted = await step.run("delete-completed-logs", async () => {
       const result = await prisma.execution.deleteMany({

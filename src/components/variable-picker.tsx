@@ -12,75 +12,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { NodeType } from "@/generated/prisma";
-import toposort from "toposort";
+import { getNodeVariables } from "@/features/nodes/types";
 import { cn } from "@/lib/utils";
 
 interface VariablePickerProps {
     onSelect: (variable: string) => void;
     currentId?: string; // ID of the node currently being edited
 }
-
 const getNodeOutputVariables = (nodeType: string): Array<{ key: string, label: string }> => {
-    switch (nodeType) {
-        case NodeType.WEBHOOK:
-            return [
-                { key: 'body', label: 'Body (JSON)' },
-                { key: 'query', label: 'Query Parameters' },
-                { key: 'headers', label: 'Headers' },
-            ];
-        case NodeType.GEMINI:
-        case NodeType.OPENAI:
-        case NodeType.ANTHROPIC:
-            return [
-                { key: 'text', label: 'Generated Text' },
-            ];
-        case NodeType.HTTP_REQUEST:
-            return [
-                { key: 'httpResponse.data', label: 'Response Data' },
-                { key: 'httpResponse.status', label: 'Status Code' },
-            ];
-        case NodeType.MANUAL_TRIGGER:
-            return [
-                { key: 'email', label: 'User Email' },
-                { key: 'userId', label: 'User ID' },
-            ];
-        case NodeType.SET_FIELDS:
-            return [
-                { key: 'fields', label: 'Fields Object' },
-                { key: '*', label: 'All Fields' },
-            ];
-        case NodeType.MERGE:
-            return [
-                { key: 'merged', label: 'Merged Object' },
-                { key: '*', label: 'All Properties' },
-            ];
-        case NodeType.EMAIL:
-            return [
-                { key: 'success', label: 'Success' },
-                { key: 'id', label: 'Email ID' },
-            ];
-        case NodeType.SCHEDULE:
-            return [
-                { key: 'triggeredAt', label: 'Triggered At' },
-                { key: 'cronExpression', label: 'Cron Expression' },
-            ];
-        case NodeType.SUB_WORKFLOW:
-            return [
-                { key: 'triggeredWorkflowId', label: 'Triggered Workflow ID' },
-                { key: 'status', label: 'Trigger Status' },
-            ];
-        case NodeType.CODE:
-            return [
-                { key: '*', label: 'Output (Custom)' },
-            ];
-        case NodeType.LOOP:
-            return [
-                { key: '[*]', label: 'Array of Results' },
-            ];
-        default:
-            return [];
-    }
+    // Map the strict schema to the UI format required here
+    const vars = getNodeVariables(nodeType);
+    return vars.map(v => ({ key: v.key, label: v.label }));
 }
 
 const SYSTEM_VARIABLES = [

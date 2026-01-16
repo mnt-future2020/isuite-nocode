@@ -14,7 +14,7 @@ interface JsonTreeViewProps {
     path?: string;
 }
 
-export const JsonTreeView = ({ data, label, level = 0, isLast = true, defaultExpanded = false, path }: JsonTreeViewProps) => {
+export const JsonTreeViewComponent = ({ data, label, level = 0, isLast = true, defaultExpanded = false, path }: JsonTreeViewProps) => {
     const [isOpen, setIsOpen] = useState(defaultExpanded || level < 2); // Expand first 2 levels by default or if defaultExpanded is true
 
     const getType = (val: any) => {
@@ -115,3 +115,5 @@ export const JsonTreeView = ({ data, label, level = 0, isLast = true, defaultExp
         </Collapsible>
     );
 };
+
+export const JsonTreeView = React.memo(JsonTreeViewComponent);

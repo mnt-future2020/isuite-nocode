@@ -95,7 +95,7 @@ const credentialTypeOptions = [
   {
     value: CredentialType.WHATSAPP,
     label: "WhatsApp Cloud API",
-    logo: "/logos/whatsapp.png",
+    logo: "/logos/whatsapp.svg",
   },
 ];
 

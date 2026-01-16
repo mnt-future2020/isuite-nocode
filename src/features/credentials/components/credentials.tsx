@@ -118,12 +118,12 @@ const credentialLogos: Record<CredentialType, string> = {
   [CredentialType.OPENAI]: "/logos/openai.svg",
   [CredentialType.ANTHROPIC]: "/logos/anthropic.svg",
   [CredentialType.GEMINI]: "/logos/gemini.svg",
-  [CredentialType.GMAIL]: "/logos/gmail.svg",
+  [CredentialType.GMAIL]: "/logos/google.svg",
   [CredentialType.GOOGLE_SHEETS]: "/logos/google-sheets.png",
-  [CredentialType.POSTGRES]: "/logos/postgres.svg",
-  [CredentialType.MYSQL]: "/logos/mysql.svg",
+  [CredentialType.POSTGRES]: "/logos/postgres.png",
+  [CredentialType.MYSQL]: "/logos/mysql.png",
   [CredentialType.GOOGLE_FORMS]: "/logos/googleform.svg",
-  [CredentialType.WHATSAPP]: "/logos/whatsapp.png",
+  [CredentialType.WHATSAPP]: "/logos/whatsapp.svg",
 };
 
 export const CredentialItem = ({

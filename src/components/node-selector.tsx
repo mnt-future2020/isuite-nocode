@@ -96,7 +96,7 @@ const triggerNodes: NodeTypeOption[] = [
     type: NodeType.WHATSAPP_TRIGGER,
     label: "WhatsApp Trigger",
     description: "Runs on incoming WhatsApp message",
-    icon: "/logos/whatsapp.png",
+    icon: "/logos/whatsapp.svg",
   },
 ];
 
@@ -135,7 +135,7 @@ const aiNodes: NodeTypeOption[] = [
     type: NodeType.AI_TOOL,
     label: "AI Tool",
     description: "Define custom tools",
-    icon: HammerIcon, // Using HammerIcon as a placeholder for Tool
+    icon: HammerIcon,
   },
 ];
 
@@ -231,7 +231,7 @@ const integrationNodes: NodeTypeOption[] = [
     type: NodeType.WHATSAPP_SEND,
     label: "WhatsApp Send",
     description: "Send a message via WhatsApp",
-    icon: "/logos/whatsapp.png",
+    icon: "/logos/whatsapp.svg",
   },
 ];
 
@@ -471,4 +471,4 @@ export function NodeSelector({
       </SheetContent>
     </Sheet>
   );
-};
+}

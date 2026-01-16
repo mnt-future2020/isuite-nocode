@@ -8,6 +8,10 @@ import { DynamicTool, Tool } from "@langchain/core/tools";
 import { Calculator } from "@langchain/community/tools/calculator";
 import { initializeAgentExecutorWithOptions } from "@langchain/classic/agents";
 
+import { decrypt } from "@/lib/encryption";
+
+
+
 export const aiAgentExecutor = async (params: NodeExecutorParams) => {
     const { data, nodeId, context } = params;
     // Fix: access body safely
@@ -16,7 +20,13 @@ export const aiAgentExecutor = async (params: NodeExecutorParams) => {
     // 1. Fetch Upstream Connections to identify Model, Memory, Tools
     const connections = await prisma.connection.findMany({
         where: { toNodeId: nodeId },
-        include: { fromNode: true }
+        include: {
+            fromNode: {
+                include: {
+                    credential: true
+                }
+            }
+        }
     });
 
     let model: any = null;
@@ -31,7 +41,16 @@ export const aiAgentExecutor = async (params: NodeExecutorParams) => {
         // --- Chat Model ---
         if (handleId === 'chat-model-input') {
             if (upstreamNode.type === NodeType.OPENAI) {
-                const apiKey = process.env.OPENAI_API_KEY;
+                let apiKey = process.env.OPENAI_API_KEY;
+
+                if (upstreamNode.credential && upstreamNode.credential.value) {
+                    try {
+                        apiKey = decrypt(upstreamNode.credential.value);
+                    } catch (e) {
+                        console.error("Failed to decrypt OpenAi credential");
+                    }
+                }
+
                 model = new ChatOpenAI({
                     openAIApiKey: apiKey,
                     modelName: (upstreamNode.data as any).model || "gpt-3.5-turbo",

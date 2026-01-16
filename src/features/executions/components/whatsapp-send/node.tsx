@@ -57,7 +57,7 @@ export const WhatsAppSendNode = memo((props: NodeProps<WhatsappSendNodeType>) =>
                 {...props}
                 id={props.id}
                 category="INTEGRATION"
-                icon="/logos/whatsapp.png"
+                icon="/logos/whatsapp.svg"
                 name="WhatsApp Send"
                 description={description}
                 status={nodeStatus}
