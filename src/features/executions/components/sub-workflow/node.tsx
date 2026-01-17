@@ -42,6 +42,7 @@ export const SubWorkflowNode = (props: NodeProps) => {
                     subWorkflowId: (data?.subWorkflowId as string) || "",
                     variableName: (data?.variableName as string) || "subWorkflowResult",
                 }}
+                nodeId={id}
             />
             <BaseExecutionNode
                 {...props}

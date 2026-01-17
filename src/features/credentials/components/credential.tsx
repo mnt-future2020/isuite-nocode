@@ -130,18 +130,45 @@ export const CredentialForm = ({
   const watchType = form.watch("type");
 
   // Gmail specific state
-  const [gmailConfig, setGmailConfig] = useState({
-    user: "",
-    clientId: "",
-    clientSecret: "",
-    refreshToken: "",
+  const [gmailConfig, setGmailConfig] = useState(() => {
+    if (initialData?.value && (
+      initialData.type === CredentialType.GMAIL ||
+      initialData.type === CredentialType.GOOGLE_SHEETS ||
+      initialData.type === CredentialType.GOOGLE_FORMS
+    )) {
+      try {
+        // Only attempt parse if it looks like a JSON object to avoid syntax errors
+        if (initialData.value.trim().startsWith('{')) {
+          return JSON.parse(initialData.value);
+        }
+      } catch (e) {
+        // Silent fallback to default if parse fails
+      }
+    }
+    return {
+      user: "",
+      clientId: "",
+      clientSecret: "",
+      refreshToken: "",
+    };
   });
 
   // WhatsApp specific state
-  const [whatsappConfig, setWhatsappConfig] = useState({
-    accessToken: "",
-    phoneNumberId: "",
-    verifyToken: "",
+  const [whatsappConfig, setWhatsappConfig] = useState(() => {
+    if (initialData?.value && initialData.type === CredentialType.WHATSAPP) {
+      try {
+        if (initialData.value.trim().startsWith('{')) {
+          return JSON.parse(initialData.value);
+        }
+      } catch (e) {
+        // Silent fallback
+      }
+    }
+    return {
+      accessToken: "",
+      phoneNumberId: "",
+      verifyToken: "",
+    };
   });
 
   // OAuth Flow State
@@ -154,30 +181,76 @@ export const CredentialForm = ({
     }
   }, []);
 
-  // Load initial gmail/whatsapp config if applicable
-  useEffect(() => {
-    if (initialData?.value) {
-      try {
-        const parsed = JSON.parse(initialData.value);
-        if (initialData.type === CredentialType.GMAIL) {
-          setGmailConfig(parsed);
-        } else if (initialData.type === CredentialType.WHATSAPP) {
-          setWhatsappConfig(parsed);
-        }
-      } catch (e) {
-        console.error("Failed to parse config", e);
-      }
-    }
-  }, [initialData]);
-
-  // Update value when config changes
+  // Sync state to form value when config changes
   useEffect(() => {
     if (watchType === CredentialType.GMAIL || watchType === CredentialType.GOOGLE_SHEETS || watchType === CredentialType.GOOGLE_FORMS) {
-      form.setValue("value", JSON.stringify(gmailConfig));
+      const newValue = JSON.stringify(gmailConfig);
+      if (form.getValues("value") !== newValue) {
+        form.setValue("value", newValue);
+      }
     } else if (watchType === CredentialType.WHATSAPP) {
-      form.setValue("value", JSON.stringify(whatsappConfig));
+      const newValue = JSON.stringify(whatsappConfig);
+      if (form.getValues("value") !== newValue) {
+        form.setValue("value", newValue);
+      }
     }
   }, [gmailConfig, whatsappConfig, watchType, form]);
+
+  // Sync from initialData changes (e.g. after save/redirect)
+  useEffect(() => {
+    if (!initialData) return;
+
+    // Reset form to match latest server data
+    form.reset(initialData);
+
+    // Sync local state for Gmail/Sheets/Forms
+    if (
+      initialData.type === CredentialType.GMAIL ||
+      initialData.type === CredentialType.GOOGLE_SHEETS ||
+      initialData.type === CredentialType.GOOGLE_FORMS
+    ) {
+      try {
+        if (initialData.value && initialData.value.trim().startsWith('{')) {
+          let parsed = JSON.parse(initialData.value);
+          // Handle potential double-encoding
+          if (typeof parsed === 'string') {
+            try {
+              const inner = JSON.parse(parsed);
+              if (typeof inner === 'object' && inner !== null) parsed = inner;
+            } catch (e) { /* ignore */ }
+          }
+
+          if (typeof parsed === 'object' && parsed !== null) {
+            setGmailConfig(parsed);
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    // Sync local state for WhatsApp
+    if (initialData.type === CredentialType.WHATSAPP) {
+      try {
+        if (initialData.value && initialData.value.trim().startsWith('{')) {
+          let parsed = JSON.parse(initialData.value);
+          // Handle double-encoding
+          if (typeof parsed === 'string') {
+            try {
+              const inner = JSON.parse(parsed);
+              if (typeof inner === 'object' && inner !== null) parsed = inner;
+            } catch (e) { /* ignore */ }
+          }
+
+          if (typeof parsed === 'object' && parsed !== null) {
+            setWhatsappConfig(parsed);
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [initialData, form]);
 
   const handleOAuthLogin = useCallback(() => {
     if (!gmailConfig.clientId || !gmailConfig.clientSecret) {
@@ -212,7 +285,7 @@ export const CredentialForm = ({
             });
 
             if (result.refresh_token) {
-              setGmailConfig(prev => ({
+              setGmailConfig((prev: any) => ({
                 ...prev,
                 refreshToken: result.refresh_token,
                 user: result.email || prev.user,
@@ -267,13 +340,28 @@ export const CredentialForm = ({
 
 
   const onSubmit = async (values: FormValues) => {
+    // Ensure value is strictly synced with the active config state
+    // This prevents race conditions where useEffect hasn't fired yet to update the form value
+    let payloadValue = values.value;
+
+    if (values.type === CredentialType.GMAIL || values.type === CredentialType.GOOGLE_SHEETS || values.type === CredentialType.GOOGLE_FORMS) {
+      payloadValue = JSON.stringify(gmailConfig);
+    } else if (values.type === CredentialType.WHATSAPP) {
+      payloadValue = JSON.stringify(whatsappConfig);
+    }
+
+    const payload = {
+      ...values,
+      value: payloadValue
+    };
+
     if (isEdit && initialData?.id) {
       await updateCredential.mutateAsync({
         id: initialData.id,
-        ...values,
+        ...payload,
       })
     } else {
-      await createCredential.mutateAsync(values, {
+      await createCredential.mutateAsync(payload, {
         onSuccess: (data) => {
           router.push(`/credentials/${data.id}`);
         },
@@ -384,7 +472,7 @@ export const CredentialForm = ({
                     <FormLabel>Client ID <span className="text-red-500">*</span></FormLabel>
                     <Input
                       value={gmailConfig.clientId}
-                      onChange={(e) => setGmailConfig(prev => ({ ...prev, clientId: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGmailConfig((prev: any) => ({ ...prev, clientId: e.target.value }))}
                       placeholder="...apps.googleusercontent.com"
                     />
                   </div>
@@ -393,7 +481,7 @@ export const CredentialForm = ({
                     <Input
                       type="password"
                       value={gmailConfig.clientSecret}
-                      onChange={(e) => setGmailConfig(prev => ({ ...prev, clientSecret: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGmailConfig((prev: any) => ({ ...prev, clientSecret: e.target.value }))}
                       placeholder="Client Secret"
                     />
                   </div>
@@ -408,7 +496,7 @@ export const CredentialForm = ({
                           variant="ghost"
                           size="sm"
                           className="ml-auto text-red-500 hover:text-red-600 hover:bg-red-50"
-                          onClick={() => setGmailConfig(prev => ({ ...prev, refreshToken: "", user: "" }))}
+                          onClick={() => setGmailConfig((prev: any) => ({ ...prev, refreshToken: "", user: "" }))}
                         >
                           Disconnect
                         </Button>
@@ -469,7 +557,7 @@ export const CredentialForm = ({
                       type="password"
                       placeholder="EA..."
                       value={whatsappConfig.accessToken}
-                      onChange={(e) => setWhatsappConfig(prev => ({ ...prev, accessToken: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setWhatsappConfig((prev: any) => ({ ...prev, accessToken: e.target.value }))}
                     />
                     <p className="text-[11px] text-muted-foreground">Permanent access token from Meta Business Suite.</p>
                   </div>
@@ -478,7 +566,7 @@ export const CredentialForm = ({
                     <Input
                       placeholder="1234567890"
                       value={whatsappConfig.phoneNumberId}
-                      onChange={(e) => setWhatsappConfig(prev => ({ ...prev, phoneNumberId: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setWhatsappConfig((prev: any) => ({ ...prev, phoneNumberId: e.target.value }))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -486,7 +574,7 @@ export const CredentialForm = ({
                     <Input
                       placeholder="my-secret-token"
                       value={whatsappConfig.verifyToken}
-                      onChange={(e) => setWhatsappConfig(prev => ({ ...prev, verifyToken: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setWhatsappConfig((prev: any) => ({ ...prev, verifyToken: e.target.value }))}
                     />
                     <p className="text-[11px] text-muted-foreground">Create a secure string. You will use this when setting up the Webhook in Meta.</p>
                   </div>

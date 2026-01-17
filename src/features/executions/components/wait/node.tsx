@@ -46,6 +46,7 @@ export const WaitNode = memo((props: NodeProps<WaitNodeType>) => {
                 onOpenChange={setDialogOpen}
                 onSubmit={handleSubmit}
                 defaultValues={nodeData}
+                nodeId={props.id}
             />
             <BaseExecutionNode
                 {...props}

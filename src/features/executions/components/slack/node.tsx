@@ -56,6 +56,7 @@ export const SlackNode = memo((props: NodeProps<SlackNodeType>) => {
         onOpenChange={setDialogOpen}
         onSubmit={handleSubmit}
         defaultValues={nodeData}
+        nodeId={props.id}
       />
       <BaseExecutionNode
         {...props}

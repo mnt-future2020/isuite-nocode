@@ -3,7 +3,7 @@ import { createTRPCRouter, premiumProcedure, protectedProcedure } from "@/trpc/i
 import z from "zod";
 import { PAGINATION } from "@/config/constants";
 import { CredentialType } from "@/generated/prisma";
-import { encrypt } from "@/lib/encryption";
+import { encrypt, decrypt } from "@/lib/encryption";
 
 export const credentialsRouter = createTRPCRouter({
   create: premiumProcedure
@@ -25,7 +25,7 @@ export const credentialsRouter = createTRPCRouter({
           value: encrypt(value),
         },
       });
-  }),
+    }),
   remove: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(({ ctx, input }) => {
@@ -38,8 +38,8 @@ export const credentialsRouter = createTRPCRouter({
     }),
   update: protectedProcedure
     .input(
-      z.object({ 
-        id: z.string(), 
+      z.object({
+        id: z.string(),
         name: z.string().min(1, "Name is required"),
         type: z.enum(CredentialType),
         value: z.string().min(1, "Value is required"),
@@ -59,10 +59,20 @@ export const credentialsRouter = createTRPCRouter({
     }),
   getOne: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .query(({ ctx, input }) => {
-      return prisma.credential.findUniqueOrThrow({
+    .query(async ({ ctx, input }) => {
+      const cred = await prisma.credential.findUniqueOrThrow({
         where: { id: input.id, userId: ctx.auth.user.id },
       });
+
+      try {
+        return {
+          ...cred,
+          value: decrypt(cred.value)
+        };
+      } catch (e) {
+        // If decryption fails (legacy data?), return as is
+        return cred;
+      }
     }),
   getMany: protectedProcedure
     .input(
@@ -83,7 +93,7 @@ export const credentialsRouter = createTRPCRouter({
         prisma.credential.findMany({
           skip: (page - 1) * pageSize,
           take: pageSize,
-          where: { 
+          where: {
             userId: ctx.auth.user.id,
             name: {
               contains: search,
@@ -109,8 +119,14 @@ export const credentialsRouter = createTRPCRouter({
       const hasNextPage = page < totalPages;
       const hasPreviousPage = page > 1;
 
+      const decryptedItems = items.map(item => {
+        try {
+          return { ...item, value: decrypt(item.value) };
+        } catch { return item; }
+      });
+
       return {
-        items,
+        items: decryptedItems,
         page,
         pageSize,
         totalCount,
@@ -125,14 +141,20 @@ export const credentialsRouter = createTRPCRouter({
         type: z.enum(CredentialType),
       })
     )
-    .query(({ input, ctx }) => {
+    .query(async ({ input, ctx }) => {
       const { type } = input;
 
-      return prisma.credential.findMany({
+      const items = await prisma.credential.findMany({
         where: { type, userId: ctx.auth.user.id },
         orderBy: {
           updatedAt: "desc",
         },
+      });
+
+      return items.map(item => {
+        try {
+          return { ...item, value: decrypt(item.value) };
+        } catch { return item; }
       });
     }),
 });

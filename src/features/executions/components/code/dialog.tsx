@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
@@ -30,6 +30,7 @@ import { useMutation } from "@tanstack/react-query";
 import { NodeEditorWorkspace } from "@/components/node-editor-workspace";
 import { useNodeInputData } from "@/hooks/use-node-input-schema";
 import { useTestNode } from "@/hooks/use-test-node";
+import { VariablePicker } from "@/components/variable-picker";
 
 // Dynamically import Monaco to avoid SSR issues
 const MonacoEditor = dynamic(
@@ -81,6 +82,8 @@ export const CodeDialog = ({
 
     // Get available input variables from upstream nodes
     const inputData = useNodeInputData(nodeId);
+
+    const editorRef = useRef<any>(null);
 
     const [contextInput, setContextInput] = useState('{}');
 
@@ -166,7 +169,47 @@ export const CodeDialog = ({
                                 name="code"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-sm font-bold">JavaScript Code</FormLabel>
+                                        <div className="flex items-center justify-between">
+                                            <FormLabel className="text-sm font-bold">JavaScript Code</FormLabel>
+                                            <VariablePicker
+                                                currentId={nodeId}
+                                                onSelect={(variable) => {
+                                                    if (editorRef.current) {
+                                                        const editor = editorRef.current;
+                                                        const position = editor.getPosition();
+
+                                                        // Construct range safely - if no position, insert at start
+                                                        const range = position ? {
+                                                            startLineNumber: position.lineNumber,
+                                                            startColumn: position.column,
+                                                            endLineNumber: position.lineNumber,
+                                                            endColumn: position.column
+                                                        } : {
+                                                            startLineNumber: 1,
+                                                            startColumn: 1,
+                                                            endLineNumber: 1,
+                                                            endColumn: 1
+                                                        };
+
+                                                        // Execute edit
+                                                        editor.executeEdits("variable-picker", [{
+                                                            range: range,
+                                                            text: variable,
+                                                            forceMoveMarkers: true
+                                                        }]);
+
+                                                        // Important: Restore focus
+                                                        editor.focus();
+
+                                                        // Important: Manually update form state because programmatic edits might not trigger onChange
+                                                        field.onChange(editor.getValue());
+                                                    } else {
+                                                        // Fallback append
+                                                        field.onChange((field.value || "") + variable);
+                                                    }
+                                                }}
+                                            />
+                                        </div>
                                         <FormControl>
                                             <div className="border rounded-xl overflow-hidden shadow-sm">
                                                 <MonacoEditor
@@ -174,6 +217,10 @@ export const CodeDialog = ({
                                                     defaultLanguage="javascript"
                                                     value={field.value}
                                                     onChange={(value) => field.onChange(value || "")}
+                                                    onMount={(editor, monaco) => {
+                                                        editorRef.current = editor;
+                                                        (window as any).monaco = monaco;
+                                                    }}
                                                     theme="vs-dark"
                                                     options={{
                                                         minimap: { enabled: false },

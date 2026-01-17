@@ -42,6 +42,7 @@ export const MergeNode = (props: NodeProps) => {
                     variableName: (data?.variableName as string) || "merged",
                     mode: (data?.mode as "append" | "merge" | "keepFirst") || "merge",
                 }}
+                nodeId={id}
             />
             <BaseExecutionNode
                 {...props}

@@ -55,6 +55,7 @@ export const DiscordNode = memo((props: NodeProps<DiscordNodeType>) => {
         onOpenChange={setDialogOpen}
         onSubmit={handleSubmit}
         defaultValues={nodeData}
+        nodeId={props.id}
       />
       <BaseExecutionNode
         {...props}

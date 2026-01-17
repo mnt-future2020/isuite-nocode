@@ -46,6 +46,7 @@ export const LoopNode = (props: NodeProps) => {
                     inputVariable: (data?.inputVariable as string) || "",
                     code: (data?.code as string) || "",
                 }}
+                nodeId={id}
             />
             <BaseExecutionNode
                 {...props}

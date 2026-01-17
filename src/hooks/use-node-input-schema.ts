@@ -14,31 +14,16 @@ export interface NodeOutputData {
 }
 
 export const useNodeInputData = (currentNodeId?: string): NodeOutputData[] => {
-    const { getNodes, getEdges } = useReactFlow();
+    const { getNodes } = useReactFlow();
 
     return useMemo(() => {
         if (!currentNodeId) return [];
 
         const nodes = getNodes();
-        const edges = getEdges();
 
-        // Find all nodes that come before the current node (upstream nodes)
-        const upstreamNodeIds = new Set<string>();
-
-        const findUpstream = (nodeId: string) => {
-            edges.forEach(edge => {
-                if (edge.target === nodeId && !upstreamNodeIds.has(edge.source)) {
-                    upstreamNodeIds.add(edge.source);
-                    findUpstream(edge.source);
-                }
-            });
-        };
-
-        findUpstream(currentNodeId);
-
-        // Build data for each upstream node
+        // Return all nodes except the current one to show all available variables
         return nodes
-            .filter(node => upstreamNodeIds.has(node.id))
+            .filter(node => node.id !== currentNodeId)
             .map(node => {
                 // Get the actual execution output from the node's data
                 const execution = node.data?.execution as { output?: any } | undefined;
@@ -72,5 +57,5 @@ export const useNodeInputData = (currentNodeId?: string): NodeOutputData[] => {
             // Keep entries if they have output (real or mock)
             .filter(data => data.output !== null && data.output !== undefined);
 
-    }, [getNodes, getEdges, currentNodeId]);
+    }, [getNodes, currentNodeId]);
 };

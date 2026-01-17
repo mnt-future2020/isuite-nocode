@@ -48,6 +48,7 @@ export const ConditionNode = memo((props: NodeProps<ConditionNodeType>) => {
                 onOpenChange={setDialogOpen}
                 onSubmit={handleSubmit}
                 defaultValues={nodeData}
+                nodeId={props.id}
             />
             <BaseExecutionNode
                 {...props}

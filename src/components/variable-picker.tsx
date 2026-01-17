@@ -87,7 +87,7 @@ export const VariablePicker = ({ onSelect, currentId }: VariablePickerProps) => 
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-muted-foreground hover:text-primary">
+                <Button type="button" variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-muted-foreground hover:text-primary">
                     <Braces className="h-4 w-4" />
                 </Button>
             </PopoverTrigger>
@@ -107,6 +107,7 @@ export const VariablePicker = ({ onSelect, currentId }: VariablePickerProps) => 
                         {(['variables', 'system', 'filters'] as const).map((tab) => (
                             <button
                                 key={tab}
+                                type="button"
                                 onClick={() => setActiveTab(tab)}
                                 className={cn(
                                     "flex-1 px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all",
@@ -144,6 +145,7 @@ export const VariablePicker = ({ onSelect, currentId }: VariablePickerProps) => 
                                                 return (
                                                     <button
                                                         key={output.key}
+                                                        type="button"
                                                         className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-primary/5 rounded-md group transition-all text-left border border-transparent hover:border-primary/10 cursor-grab active:cursor-grabbing"
                                                         draggable="true"
                                                         onDragStart={(e) => {
@@ -176,6 +178,7 @@ export const VariablePicker = ({ onSelect, currentId }: VariablePickerProps) => 
                                 {filteredSystem.map((sys) => (
                                     <button
                                         key={sys.key}
+                                        type="button"
                                         className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-primary/5 rounded-md group transition-all text-left border border-transparent hover:border-primary/10 cursor-grab active:cursor-grabbing"
                                         draggable="true"
                                         onDragStart={(e) => {
@@ -210,6 +213,7 @@ export const VariablePicker = ({ onSelect, currentId }: VariablePickerProps) => 
                                 {filteredFilters.map((f) => (
                                     <button
                                         key={f.key}
+                                        type="button"
                                         className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-primary/5 rounded-md group transition-all text-left border border-transparent hover:border-primary/10"
                                         onClick={() => {
                                             onSelect(` | ${f.key} `);

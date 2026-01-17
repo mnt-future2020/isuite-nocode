@@ -50,6 +50,7 @@ export const SwitchNode = memo((props: NodeProps<SwitchNodeType>) => {
                 onOpenChange={setDialogOpen}
                 onSubmit={handleSubmit}
                 defaultValues={nodeData}
+                nodeId={props.id}
             />
             <BaseExecutionNode
                 {...props}

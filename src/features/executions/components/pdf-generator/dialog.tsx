@@ -4,6 +4,7 @@ import { useTestNode } from "@/hooks/use-test-node";
 import { useNodeInputData } from "@/hooks/use-node-input-schema";
 import { NodeEditorWorkspace } from "@/components/node-editor-workspace";
 import { ExpressionInput } from "@/components/expression-input";
+import { VariablePicker } from "@/components/variable-picker";
 import {
     Form,
     FormControl,
@@ -18,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -63,6 +64,7 @@ export const PDFGeneratorDialog = ({
     const workflowId = params.workflowId as string;
     const [contextInput, setContextInput] = useState('{}');
     const inputData = useNodeInputData(nodeId);
+    const editorRef = useRef<any>(null);
 
     const form = useForm<PDFGeneratorFormValues>({
         resolver: zodResolver(formSchema),
@@ -151,7 +153,40 @@ export const PDFGeneratorDialog = ({
                                 name="htmlContent"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-sm font-bold">HTML Template</FormLabel>
+                                        <div className="flex items-center justify-between">
+                                            <FormLabel className="text-sm font-bold">HTML Template</FormLabel>
+                                            <VariablePicker
+                                                currentId={nodeId}
+                                                onSelect={(variable) => {
+                                                    if (editorRef.current) {
+                                                        const editor = editorRef.current;
+                                                        const position = editor.getPosition();
+
+                                                        const range = position ? {
+                                                            startLineNumber: position.lineNumber,
+                                                            startColumn: position.column,
+                                                            endLineNumber: position.lineNumber,
+                                                            endColumn: position.column
+                                                        } : {
+                                                            startLineNumber: 1,
+                                                            startColumn: 1,
+                                                            endLineNumber: 1,
+                                                            endColumn: 1
+                                                        };
+
+                                                        editor.executeEdits("variable-picker", [{
+                                                            range: range,
+                                                            text: variable,
+                                                            forceMoveMarkers: true
+                                                        }]);
+                                                        editor.focus();
+                                                        field.onChange(editor.getValue());
+                                                    } else {
+                                                        field.onChange((field.value || "") + variable);
+                                                    }
+                                                }}
+                                            />
+                                        </div>
                                         <FormControl>
                                             <div className="h-[400px] border rounded-md overflow-hidden bg-background shadow-inner">
                                                 <MonacoEditor
@@ -160,6 +195,10 @@ export const PDFGeneratorDialog = ({
                                                     theme="vs-dark"
                                                     value={field.value}
                                                     onChange={(val) => field.onChange(val || "")}
+                                                    onMount={(editor, monaco) => {
+                                                        editorRef.current = editor;
+                                                        (window as any).monaco = monaco;
+                                                    }}
                                                     options={{
                                                         minimap: { enabled: false },
                                                         fontSize: 13,

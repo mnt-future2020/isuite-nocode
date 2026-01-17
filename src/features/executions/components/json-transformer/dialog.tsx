@@ -3,7 +3,9 @@
 import { useTestNode } from "@/hooks/use-test-node";
 import { useNodeInputData } from "@/hooks/use-node-input-schema";
 import { NodeEditorWorkspace } from "@/components/node-editor-workspace";
+import { VariablePicker } from "@/components/variable-picker";
 import { ExpressionInput } from "@/components/expression-input";
+
 import {
     Form,
     FormControl,
@@ -25,7 +27,7 @@ import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -71,6 +73,7 @@ export function JSONTransformerDialog({
     const workflowId = params.workflowId as string;
     const [contextInput, setContextInput] = useState('{\n  "test": {\n    "data": "hello"\n  }\n}');
     const inputData = useNodeInputData(nodeId);
+    const editorRef = useRef<any>(null);
 
     const form = useForm<JSONTransformerFormValues>({
         resolver: zodResolver(jsonTransformerSchema),
@@ -199,7 +202,40 @@ export function JSONTransformerDialog({
                                     name="mappingTemplate"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-sm font-bold">JSON Mapping Template</FormLabel>
+                                            <div className="flex items-center justify-between">
+                                                <FormLabel className="text-sm font-bold">JSON Mapping Template</FormLabel>
+                                                <VariablePicker
+                                                    currentId={nodeId}
+                                                    onSelect={(variable) => {
+                                                        if (editorRef.current) {
+                                                            const editor = editorRef.current;
+                                                            const position = editor.getPosition();
+
+                                                            const range = position ? {
+                                                                startLineNumber: position.lineNumber,
+                                                                startColumn: position.column,
+                                                                endLineNumber: position.lineNumber,
+                                                                endColumn: position.column
+                                                            } : {
+                                                                startLineNumber: 1,
+                                                                startColumn: 1,
+                                                                endLineNumber: 1,
+                                                                endColumn: 1
+                                                            };
+
+                                                            editor.executeEdits("variable-picker", [{
+                                                                range: range,
+                                                                text: variable,
+                                                                forceMoveMarkers: true
+                                                            }]);
+                                                            editor.focus();
+                                                            field.onChange(editor.getValue());
+                                                        } else {
+                                                            field.onChange((field.value || "") + variable);
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
                                             <FormControl>
                                                 <div className="h-[300px] border rounded-md overflow-hidden bg-background shadow-inner">
                                                     <MonacoEditor
@@ -208,6 +244,10 @@ export function JSONTransformerDialog({
                                                         theme="vs-dark"
                                                         value={field.value}
                                                         onChange={(val) => field.onChange(val || "")}
+                                                        onMount={(editor, monaco) => {
+                                                            editorRef.current = editor;
+                                                            (window as any).monaco = monaco;
+                                                        }}
                                                         options={{
                                                             minimap: { enabled: false },
                                                             fontSize: 13,

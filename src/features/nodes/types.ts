@@ -15,11 +15,33 @@ export const NODE_VARIABLE_SCHEMAS: Record<string, NodeVariable[]> = {
         { key: 'headers', label: 'Headers', type: "object" },
         { key: 'method', label: 'HTTP Method', type: "string" },
     ],
+    [NodeType.SWITCH]: [
+        { key: 'match', label: 'Is Matched', type: "boolean" },
+        { key: 'matchedValue', label: 'Matched Value', type: "string" },
+        { key: '__branch', label: 'Branch', type: "string" },
+    ],
+    [NodeType.GOOGLE_FORM_TRIGGER]: [
+        { key: 'body', label: 'Form Response', type: "object" },
+    ],
+    [NodeType.WHATSAPP_TRIGGER]: [
+        { key: 'from', label: 'Sender', type: "string" },
+        { key: 'body', label: 'Message Body', type: "string" },
+    ],
+    [NodeType.STRIPE_TRIGGER]: [
+        { key: 'type', label: 'Event Type', type: "string" },
+        { key: 'data.object', label: 'Event Object', type: "object" },
+    ],
     [NodeType.GEMINI]: [
         { key: 'text', label: 'Generated Text', type: "string" },
     ],
     [NodeType.OPENAI]: [
         { key: 'text', label: 'Generated Text', type: "string" },
+    ],
+    [NodeType.DISCORD]: [
+        { key: 'messageContent', label: 'Message Content', type: "string" },
+    ],
+    [NodeType.SLACK]: [
+        { key: 'messageContent', label: 'Message Content', type: "string" },
     ],
     [NodeType.ANTHROPIC]: [
         { key: 'text', label: 'Generated Text', type: "string" },
@@ -40,11 +62,25 @@ export const NODE_VARIABLE_SCHEMAS: Record<string, NodeVariable[]> = {
     ],
     [NodeType.MERGE]: [
         { key: 'merged', label: 'Merged Object', type: "object" },
-        { key: '*', label: 'All Properties', type: "any" },
+        { key: '*0', label: 'All Properties', type: "any" },
+    ],
+    [NodeType.CONDITION]: [
+        { key: 'conditionMet', label: 'Condition Met', type: "boolean" },
+        { key: '__branch', label: 'Branch', type: "string" },
     ],
     [NodeType.EMAIL]: [
         { key: 'success', label: 'Success', type: "boolean" },
         { key: 'id', label: 'Email ID', type: "string" },
+    ],
+    [NodeType.GMAIL]: [
+        { key: 'messageId', label: 'Message ID', type: "string" },
+        { key: 'threadId', label: 'Thread ID', type: "string" },
+        { key: 'snippet', label: 'Snippet', type: "string" },
+    ],
+    [NodeType.ERROR_TRIGGER]: [
+        { key: 'error.message', label: 'Error Message', type: "string" },
+        { key: 'error.nodeId', label: 'Failed Node', type: "string" },
+        { key: 'error.timestamp', label: 'Error Time', type: "string" },
     ],
     [NodeType.SCHEDULE]: [
         { key: 'triggeredAt', label: 'Triggered At', type: "string" },
@@ -53,6 +89,13 @@ export const NODE_VARIABLE_SCHEMAS: Record<string, NodeVariable[]> = {
     [NodeType.SUB_WORKFLOW]: [
         { key: 'triggeredWorkflowId', label: 'Triggered Workflow ID', type: "string" },
         { key: 'status', label: 'Trigger Status', type: "string" },
+    ],
+    [NodeType.JSON_TRANSFORMER]: [
+        { key: '*', label: 'Transformed Data', type: "any" },
+    ],
+    [NodeType.WHATSAPP_SEND]: [
+        { key: 'messages', label: 'Messages', type: "array" },
+        { key: 'contacts', label: 'Contacts', type: "array" },
     ],
     [NodeType.CODE]: [
         { key: '*', label: 'Output (Custom)', type: "any" },
@@ -65,6 +108,29 @@ export const NODE_VARIABLE_SCHEMAS: Record<string, NodeVariable[]> = {
     [NodeType.AI_AGENT]: [
         { key: 'output', label: 'Agent Output', type: "string" },
         { key: 'intermediateSteps', label: 'Thought Process', type: "array" },
+    ],
+    [NodeType.GOOGLE_SHEETS]: [
+        { key: '*', label: 'All Data / Result', type: "any" },
+    ],
+    [NodeType.AI_MEMORY]: [
+        { key: 'provider', label: 'Memory Provider', type: "string" },
+        { key: 'config', label: 'Configuration', type: "object" },
+    ],
+    [NodeType.AI_TOOL]: [
+        { key: 'provider', label: 'Tool Provider', type: "string" },
+        { key: 'toolName', label: 'Tool Name', type: "string" },
+        { key: 'toolDescription', label: 'Tool Description', type: "string" },
+        { key: 'config', label: 'Configuration', type: "object" },
+    ],
+    [NodeType.POSTGRES]: [
+        { key: '*', label: 'All Rows', type: "array" },
+    ],
+    [NodeType.MYSQL]: [
+        { key: '*', label: 'All Rows', type: "array" },
+    ],
+    [NodeType.PDF_GENERATOR]: [
+        { key: 'data', label: 'PDF Binary', type: "any" },
+        { key: 'fileName', label: 'File Name', type: "string" },
     ],
 };
 

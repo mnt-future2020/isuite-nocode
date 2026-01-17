@@ -39,6 +39,7 @@ export const CodeNode = (props: NodeProps) => {
                     variableName: (data?.variableName as string) || "codeResult",
                     code: (data?.code as string) || "",
                 }}
+                nodeId={id}
             />
             <BaseExecutionNode
                 {...props}
