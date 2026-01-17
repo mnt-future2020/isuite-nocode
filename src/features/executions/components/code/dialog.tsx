@@ -173,6 +173,7 @@ export const CodeDialog = ({
                                             <FormLabel className="text-sm font-bold">JavaScript Code</FormLabel>
                                             <VariablePicker
                                                 currentId={nodeId}
+                                                mode="code"
                                                 onSelect={(variable) => {
                                                     if (editorRef.current) {
                                                         const editor = editorRef.current;

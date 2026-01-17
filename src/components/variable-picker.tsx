@@ -18,7 +18,9 @@ import { cn } from "@/lib/utils";
 interface VariablePickerProps {
     onSelect: (variable: string) => void;
     currentId?: string; // ID of the node currently being edited
+    mode?: 'default' | 'code'; // 'code' mode inserts syntax safe for JS execution ($input.foo)
 }
+
 const getNodeOutputVariables = (nodeType: string): Array<{ key: string, label: string }> => {
     // Map the strict schema to the UI format required here
     const vars = getNodeVariables(nodeType);
@@ -40,7 +42,7 @@ const COMMON_FILTERS = [
     { key: 'trim', label: 'Trim Whitespace', description: '| trim' },
 ];
 
-export const VariablePicker = ({ onSelect, currentId }: VariablePickerProps) => {
+export const VariablePicker = ({ onSelect, currentId, mode = 'default' }: VariablePickerProps) => {
     const { getNodes, getEdges } = useReactFlow();
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
@@ -141,7 +143,11 @@ export const VariablePicker = ({ onSelect, currentId }: VariablePickerProps) => 
                                         <div className="mt-1 space-y-0.5">
                                             {group.outputs.map((output) => {
                                                 const varPath = `${group.variablePrefix}.${output.key}`;
-                                                const displayStr = `{{ ${varPath} }}`;
+                                                // If code mode, use JS syntax. Else use Handlebars.
+                                                const displayStr = mode === 'code'
+                                                    ? `$input.${varPath}`
+                                                    : `{{ ${varPath} }}`;
+
                                                 return (
                                                     <button
                                                         key={output.key}

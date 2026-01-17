@@ -15,6 +15,7 @@ interface ExpressionInputProps {
     multiline?: boolean;
     className?: string;
     nodeId?: string;
+    mode?: 'default' | 'code';
 }
 
 export const ExpressionInput = ({
@@ -26,6 +27,7 @@ export const ExpressionInput = ({
     multiline = false,
     className,
     nodeId,
+    mode = 'default',
 }: ExpressionInputProps) => {
     const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
     const [isFocused, setIsFocused] = useState(false);
@@ -118,7 +120,7 @@ export const ExpressionInput = ({
                         "pr-2 shrink-0 transition-opacity duration-200",
                         isFocused || value ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                     )}>
-                        <VariablePicker onSelect={handleSelect} currentId={nodeId} />
+                        <VariablePicker onSelect={handleSelect} currentId={nodeId} mode={mode} />
                     </div>
                 </div>
 
